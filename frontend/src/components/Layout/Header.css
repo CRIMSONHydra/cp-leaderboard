@@ -1,0 +1,54 @@
+.app-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #fff, #a8d8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-subtitle {
+  margin: 0 0 1rem 0;
+  color: #a0a0a0;
+  font-size: 1rem;
+}
+
+.header-meta {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.user-count {
+  color: #6bc5ff;
+}
+
+.last-update {
+  color: #888;
+}
+
+@media (max-width: 600px) {
+  .app-title {
+    font-size: 1.75rem;
+  }
+
+  .header-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
