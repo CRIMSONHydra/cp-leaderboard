@@ -26,6 +26,7 @@ async function fetchAtCoderRating(handle) {
         rating: latest.NewRating,
         maxRating: maxRating,
         rank: getRankFromRating(latest.NewRating),
+        maxRank: getRankFromRating(maxRating),
         lastUpdated: new Date(),
         error: null
       };
@@ -35,6 +36,7 @@ async function fetchAtCoderRating(handle) {
       rating: null,
       maxRating: null,
       rank: 'Unrated',
+      maxRank: null,
       lastUpdated: new Date(),
       error: null
     };
@@ -44,6 +46,7 @@ async function fetchAtCoderRating(handle) {
         rating: null,
         maxRating: null,
         rank: null,
+        maxRank: null,
         lastUpdated: new Date(),
         error: 'User not found'
       };
@@ -52,6 +55,7 @@ async function fetchAtCoderRating(handle) {
       rating: null,
       maxRating: null,
       rank: null,
+      maxRank: null,
       lastUpdated: new Date(),
       error: error.message || 'Failed to fetch'
     };

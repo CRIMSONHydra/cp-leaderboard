@@ -39,6 +39,7 @@ async function fetchLeetCodeRating(handle) {
         rating: null,
         maxRating: null,
         rank: null,
+        maxRank: null,
         lastUpdated: new Date(),
         error: 'User not found'
       };
@@ -52,6 +53,7 @@ async function fetchLeetCodeRating(handle) {
         rating: Math.round(ranking.rating),
         maxRating: null, // LeetCode doesn't easily expose max rating
         rank: rankStr,
+        maxRank: null, // LeetCode doesn't track max rank
         lastUpdated: new Date(),
         error: null
       };
@@ -62,6 +64,7 @@ async function fetchLeetCodeRating(handle) {
       rating: null,
       maxRating: null,
       rank: 'Unrated',
+      maxRank: null,
       lastUpdated: new Date(),
       error: null
     };
@@ -70,6 +73,7 @@ async function fetchLeetCodeRating(handle) {
       rating: null,
       maxRating: null,
       rank: null,
+      maxRank: null,
       lastUpdated: new Date(),
       error: error.message || 'Failed to fetch'
     };

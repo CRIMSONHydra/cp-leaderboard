@@ -201,6 +201,19 @@ async function scrapeCodeChefProfile(handle) {
 }
 
 /**
+ * Get star rating from CodeChef rating
+ */
+function getStarsFromRating(rating) {
+  if (rating >= 2500) return '7★';
+  if (rating >= 2200) return '6★';
+  if (rating >= 2000) return '5★';
+  if (rating >= 1800) return '4★';
+  if (rating >= 1600) return '3★';
+  if (rating >= 1400) return '2★';
+  return '1★';
+}
+
+/**
  * Main function: Try API first, fall back to web scraping
  */
 async function fetchCodeChefRating(handle) {
@@ -208,10 +221,12 @@ async function fetchCodeChefRating(handle) {
   const apiResult = await tryApiMethod(handle);
   
   if (apiResult.success) {
+    const maxRank = apiResult.maxRating ? getStarsFromRating(apiResult.maxRating) : null;
     return {
       rating: apiResult.rating,
       maxRating: apiResult.maxRating,
       rank: apiResult.rank,
+      maxRank: maxRank,
       lastUpdated: new Date(),
       error: null
     };
@@ -223,10 +238,12 @@ async function fetchCodeChefRating(handle) {
   const scrapeResult = await scrapeCodeChefProfile(handle);
   
   if (scrapeResult.success) {
+    const maxRank = scrapeResult.maxRating ? getStarsFromRating(scrapeResult.maxRating) : null;
     return {
       rating: scrapeResult.rating,
       maxRating: scrapeResult.maxRating,
       rank: scrapeResult.rank,
+      maxRank: maxRank,
       lastUpdated: new Date(),
       error: null
     };
@@ -238,6 +255,7 @@ async function fetchCodeChefRating(handle) {
     rating: null,
     maxRating: null,
     rank: null,
+    maxRank: null,
     lastUpdated: new Date(),
     error: scrapeResult.error || apiResult.error || 'Failed to fetch rating'
   };

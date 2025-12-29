@@ -144,10 +144,21 @@
 }
 
 .rank-badge {
+  display: inline-block;
   background: rgba(255, 255, 255, 0.1);
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
   font-size: 0.85rem;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-text {
+  font-size: 0.9rem;
+  color: #ccc;
+  white-space: nowrap;
 }
 
 .no-data {

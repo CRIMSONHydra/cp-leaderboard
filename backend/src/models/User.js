@@ -4,6 +4,7 @@ const platformRatingSchema = new mongoose.Schema({
   rating: { type: Number, default: null },
   maxRating: { type: Number, default: null },
   rank: { type: String, default: null },
+  maxRank: { type: String, default: null },
   lastUpdated: { type: Date, default: null },
   error: { type: String, default: null }
 }, { _id: false });

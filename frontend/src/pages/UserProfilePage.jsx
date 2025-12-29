@@ -104,7 +104,8 @@ export default function UserProfilePage() {
                 <th>Handle</th>
                 <th>Current Rating</th>
                 <th>Highest Rating</th>
-                <th>Rank</th>
+                <th>Current Rank</th>
+                <th>Highest Rank</th>
               </tr>
             </thead>
             <tbody>
@@ -152,7 +153,14 @@ export default function UserProfilePage() {
                     </td>
                     <td>
                       {rating?.rank ? (
-                        <span className="rank-badge">{rating.rank}</span>
+                        <span className="rank-text">{rating.rank}</span>
+                      ) : (
+                        <span className="no-data">—</span>
+                      )}
+                    </td>
+                    <td>
+                      {rating?.maxRank ? (
+                        <span className="rank-text">{rating.maxRank}</span>
                       ) : (
                         <span className="no-data">—</span>
                       )}

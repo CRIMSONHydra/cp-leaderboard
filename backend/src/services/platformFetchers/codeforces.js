@@ -26,6 +26,7 @@ async function fetchCodeforcesRating(handle) {
         rating: user.rating || null,
         maxRating: user.maxRating || null,
         rank: user.rank || null,
+        maxRank: user.maxRank || null,
         lastUpdated: new Date(),
         error: null
       };
@@ -34,6 +35,7 @@ async function fetchCodeforcesRating(handle) {
       rating: null,
       maxRating: null,
       rank: null,
+      maxRank: null,
       lastUpdated: new Date(),
       error: 'User not found'
     };
@@ -43,6 +45,7 @@ async function fetchCodeforcesRating(handle) {
       rating: null,
       maxRating: null,
       rank: null,
+      maxRank: null,
       lastUpdated: new Date(),
       error: errorMsg
     };
