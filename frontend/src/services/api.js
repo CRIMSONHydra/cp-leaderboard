@@ -19,6 +19,9 @@ export const api = {
   getUserDetails: (id) =>
     fetchJSON(`/leaderboard/user/${id}`),
 
+  getUserHistory: (id) =>
+    fetchJSON(`/leaderboard/user/${id}/history`),
+
   getStats: () =>
     fetchJSON('/leaderboard/stats'),
 

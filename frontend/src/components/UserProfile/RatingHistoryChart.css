@@ -1,0 +1,75 @@
+.rating-chart-container {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.chart-empty,
+.single-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+  font-style: italic;
+  background: #1a1a2e;
+  border-radius: 8px;
+}
+
+.chart-tooltip {
+  background: #0f0f1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.tooltip-date {
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.tooltip-contest {
+  color: #999;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-rank {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.positive {
+  color: #52c41a;
+}
+
+.negative {
+  color: #ff4d4f;
+}
+
+.single-chart-container {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+}
+
+.single-chart-container h4 {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+/* Recharts overrides */
+.recharts-legend-item-text {
+  color: #ccc !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #333;
+}
+

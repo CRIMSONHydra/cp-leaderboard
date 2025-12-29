@@ -2,30 +2,116 @@ import User from '../models/User.js';
 import UpdateLog from '../models/UpdateLog.js';
 import fetchers from './platformFetchers/index.js';
 
-// Aggregate score calculation weights
-// Platforms have similar scales (~800-3500), slight adjustments for typical ranges
-const WEIGHTS = {
-  codeforces: 1.0,
-  atcoder: 1.0,
-  leetcode: 1.2,  // LeetCode contest ratings tend to be slightly lower
-  codechef: 0.9   // CodeChef ratings can go higher
-};
-
 const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
 
+// Normalization tiers for each platform
+// Maps platform ratings to a common 0-100 scale based on skill levels
+const NORMALIZATION_TIERS = {
+  codeforces: [
+    { rating: 800, normalized: 0 },    // Newbie
+    { rating: 1200, normalized: 20 },  // Pupil
+    { rating: 1400, normalized: 30 },  // Specialist
+    { rating: 1600, normalized: 40 },  // Expert
+    { rating: 1900, normalized: 50 },  // Candidate Master
+    { rating: 2100, normalized: 65 },  // Master
+    { rating: 2400, normalized: 80 },  // Grandmaster
+    { rating: 3000, normalized: 95 },  // Legendary GM
+    { rating: 3500, normalized: 100 }  // Top
+  ],
+  atcoder: [
+    { rating: 400, normalized: 0 },    // Gray
+    { rating: 800, normalized: 20 },   // Brown
+    { rating: 1200, normalized: 30 },  // Green
+    { rating: 1400, normalized: 40 },  // Cyan
+    { rating: 2000, normalized: 50 },  // Blue
+    { rating: 2400, normalized: 65 },  // Yellow
+    { rating: 2800, normalized: 80 },  // Orange
+    { rating: 3200, normalized: 95 },  // Red
+    { rating: 4000, normalized: 100 }  // Top
+  ],
+  leetcode: [
+    { rating: 1200, normalized: 0 },   // Beginner
+    { rating: 1500, normalized: 20 },  // Below average
+    { rating: 1700, normalized: 30 },  // Knight level
+    { rating: 1900, normalized: 40 },  // Advanced
+    { rating: 2100, normalized: 50 },  // Guardian level
+    { rating: 2400, normalized: 65 },  // Expert
+    { rating: 2700, normalized: 80 },  // Master
+    { rating: 3000, normalized: 95 },  // Top
+    { rating: 3500, normalized: 100 }  // Peak
+  ],
+  codechef: [
+    { rating: 1000, normalized: 0 },   // 1★
+    { rating: 1400, normalized: 20 },  // 2★
+    { rating: 1600, normalized: 30 },  // 3★
+    { rating: 1800, normalized: 40 },  // 4★
+    { rating: 2000, normalized: 50 },  // 5★
+    { rating: 2200, normalized: 65 },  // 6★
+    { rating: 2500, normalized: 80 },  // 7★
+    { rating: 3000, normalized: 95 },  // Top 7★
+    { rating: 3500, normalized: 100 }  // Peak
+  ]
+};
+
+/**
+ * Normalize a rating to 0-100 scale using piecewise linear interpolation
+ * @param {string} platform - The platform name
+ * @param {number} rating - The raw rating
+ * @returns {number} Normalized rating (0-100)
+ */
+function normalizeRating(platform, rating) {
+  const tiers = NORMALIZATION_TIERS[platform];
+  if (!tiers || rating == null) return null;
+
+  // Handle below minimum
+  if (rating <= tiers[0].rating) {
+    return tiers[0].normalized;
+  }
+
+  // Handle above maximum
+  if (rating >= tiers[tiers.length - 1].rating) {
+    return tiers[tiers.length - 1].normalized;
+  }
+
+  // Find the two tiers to interpolate between
+  for (let i = 0; i < tiers.length - 1; i++) {
+    const lower = tiers[i];
+    const upper = tiers[i + 1];
+
+    if (rating >= lower.rating && rating < upper.rating) {
+      // Linear interpolation
+      const ratingRange = upper.rating - lower.rating;
+      const normalizedRange = upper.normalized - lower.normalized;
+      const ratingOffset = rating - lower.rating;
+      
+      return lower.normalized + (ratingOffset / ratingRange) * normalizedRange;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Calculate aggregate score as average of normalized ratings
+ * @param {object} ratings - Platform ratings object
+ * @returns {number} Aggregate score (0-100)
+ */
 function calculateAggregateScore(ratings) {
-  let totalScore = 0;
+  let totalNormalized = 0;
   let platformCount = 0;
 
   for (const platform of PLATFORMS) {
     const data = ratings[platform];
     if (data?.rating && !data.error) {
-      totalScore += data.rating * (WEIGHTS[platform] || 1);
-      platformCount++;
+      const normalized = normalizeRating(platform, data.rating);
+      if (normalized !== null) {
+        totalNormalized += normalized;
+        platformCount++;
+      }
     }
   }
 
-  return platformCount > 0 ? Math.round(totalScore / platformCount) : 0;
+  return platformCount > 0 ? Math.round(totalNormalized / platformCount) : 0;
 }
 
 async function updateSingleUser(user) {
@@ -116,4 +202,11 @@ async function updateAllUsers() {
   }
 }
 
-export { updateAllUsers, updateSingleUser, calculateAggregateScore, PLATFORMS, WEIGHTS };
+export { 
+  updateAllUsers, 
+  updateSingleUser, 
+  calculateAggregateScore, 
+  normalizeRating, 
+  PLATFORMS, 
+  NORMALIZATION_TIERS 
+};

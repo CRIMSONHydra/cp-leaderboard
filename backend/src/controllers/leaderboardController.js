@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import { PLATFORMS } from '../services/ratingUpdater.js';
+import { fetchAllHistory } from '../services/historyFetcher.js';
 
 // GET /api/leaderboard - Get full leaderboard sorted by aggregate score
 const getLeaderboard = async (req, res) => {
@@ -119,4 +120,33 @@ const getStats = async (req, res) => {
   }
 };
 
-export { getLeaderboard, getPlatformLeaderboard, getUserDetails, getStats };
+// GET /api/leaderboard/user/:id/history - Get user's rating history from all platforms
+const getUserHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).lean();
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Fetch history from all platforms in parallel
+    const history = await fetchAllHistory(user.handles || {});
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          _id: user._id,
+          name: user.name,
+          handles: user.handles,
+          ratings: user.ratings,
+          aggregateScore: user.aggregateScore
+        },
+        history
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export { getLeaderboard, getPlatformLeaderboard, getUserDetails, getStats, getUserHistory };

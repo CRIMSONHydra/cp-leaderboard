@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import RatingDisplay from './RatingDisplay';
 import './LeaderboardRow.css';
 
@@ -12,7 +13,9 @@ export default function LeaderboardRow({ user, rank }) {
         </span>
       </td>
       <td className="name-cell">
-        <span className="user-name">{user.name}</span>
+        <Link to={`/user/${user._id}`} className="user-name-link">
+          {user.name}
+        </Link>
       </td>
       {PLATFORMS.map(platform => (
         <td key={platform} className="rating-cell">
