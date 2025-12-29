@@ -5,6 +5,39 @@ import UpdateLog from '../models/UpdateLog.js';
 // Stale update timeout (30 minutes)
 const STALE_UPDATE_TIMEOUT_MS = 30 * 60 * 1000;
 
+/**
+ * Atomically try to acquire an update lock by creating a running UpdateLog
+ * and checking if we're the only one running.
+ * 
+ * This prevents the race condition where:
+ * 1. Request A checks for running updates (none found)
+ * 2. Request B checks for running updates (none found)
+ * 3. Both create their own UpdateLogs and start running
+ * 
+ * @returns {object} { success: boolean, log?: UpdateLog, existingLog?: UpdateLog }
+ */
+async function acquireUpdateLock() {
+  // First, create our log immediately (optimistic approach)
+  const ourLog = await UpdateLog.create({ startedAt: new Date(), status: 'running' });
+  
+  // Now check if there are any OTHER running logs that were created before ours
+  // (using createdAt timestamp as the tie-breaker)
+  const earlierRunningLog = await UpdateLog.findOne({
+    status: 'running',
+    _id: { $ne: ourLog._id },
+    createdAt: { $lte: ourLog.createdAt }
+  }).sort({ createdAt: 1 });
+  
+  if (earlierRunningLog) {
+    // Another request beat us - delete our log and fail
+    await UpdateLog.findByIdAndDelete(ourLog._id);
+    return { success: false, existingLog: earlierRunningLog };
+  }
+  
+  // We won the race
+  return { success: true, log: ourLog };
+}
+
 // POST /api/update/trigger - Manually trigger update (for cron endpoint)
 const triggerUpdate = async (req, res) => {
   try {
@@ -37,21 +70,8 @@ const triggerUpdate = async (req, res) => {
       console.log(`Marked ${staleUpdates.modifiedCount} stale update(s) as failed`);
     }
 
-    // Check if an update is already running (unless force flag is set)
-    if (!forceUpdate) {
-      const runningUpdate = await UpdateLog.findOne({ status: 'running' });
-      if (runningUpdate) {
-        const runningForMs = Date.now() - new Date(runningUpdate.startedAt).getTime();
-        const runningForMins = Math.round(runningForMs / 60000);
-        return res.status(409).json({
-          success: false,
-          error: `An update is already in progress (running for ${runningForMins} min)`,
-          startedAt: runningUpdate.startedAt,
-          hint: 'Add ?force=true to override if the update is stuck'
-        });
-      }
-    } else {
-      // Force flag: mark any running updates as failed before starting new one
+    // Force flag: mark any running updates as failed before starting new one
+    if (forceUpdate) {
       await UpdateLog.updateMany(
         { status: 'running' },
         { 
@@ -64,8 +84,23 @@ const triggerUpdate = async (req, res) => {
       );
     }
 
-    // Start update
-    const result = await updateAllUsers();
+    // Atomically acquire the update lock
+    const lockResult = await acquireUpdateLock();
+    
+    if (!lockResult.success) {
+      const existingLog = lockResult.existingLog;
+      const runningForMs = Date.now() - new Date(existingLog.startedAt).getTime();
+      const runningForMins = Math.round(runningForMs / 60000);
+      return res.status(409).json({
+        success: false,
+        error: `An update is already in progress (running for ${runningForMins} min)`,
+        startedAt: existingLog.startedAt,
+        hint: 'Add ?force=true to override if the update is stuck'
+      });
+    }
+
+    // Start update with our acquired log
+    const result = await updateAllUsers(lockResult.log);
     res.json({ success: true, ...result });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

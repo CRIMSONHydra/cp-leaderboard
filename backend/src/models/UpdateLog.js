@@ -21,4 +21,7 @@ const updateLogSchema = new mongoose.Schema({
 // Index for finding latest update
 updateLogSchema.index({ createdAt: -1 });
 
+// Index for efficient running update checks (used by lock acquisition)
+updateLogSchema.index({ status: 1, createdAt: 1 });
+
 export default mongoose.model('UpdateLog', updateLogSchema);

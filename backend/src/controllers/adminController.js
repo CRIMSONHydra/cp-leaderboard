@@ -19,6 +19,25 @@ const createCredential = async (req, res) => {
       });
     }
 
+    // Validate password doesn't contain problematic characters
+    // Disallow colon (:) as it's used as delimiter in Basic Auth
+    // Also disallow other control characters that could cause issues
+    const invalidChars = /[:]/;
+    if (invalidChars.test(password)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password cannot contain colon (:) character'
+      });
+    }
+
+    // Validate username doesn't contain colons either
+    if (invalidChars.test(username)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username cannot contain colon (:) character'
+      });
+    }
+
     // Check if username already exists
     const existingCred = await AdminCredential.findOne({ username: username.trim() });
     if (existingCred) {

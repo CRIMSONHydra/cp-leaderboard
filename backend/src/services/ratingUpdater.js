@@ -182,8 +182,11 @@ async function updateSingleUser(user) {
   return errors;
 }
 
-async function updateAllUsers() {
-  const log = await UpdateLog.create({ startedAt: new Date() });
+/**
+ * Run the update using a pre-created log (to avoid race conditions)
+ * @param {object} log - The UpdateLog document already created by the controller
+ */
+async function updateAllUsers(log) {
   const allErrors = [];
 
   try {

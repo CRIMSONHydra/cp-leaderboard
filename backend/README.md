@@ -575,8 +575,8 @@ Content-Type: application/json
 ```
 
 **Body Parameters:**
-- `username` (required): Admin username (must be unique)
-- `password` (required): Admin password
+- `username` (required): Admin username (must be unique, cannot contain colon `:`)
+- `password` (required): Admin password (cannot contain colon `:` character due to Basic Auth limitations)
 
 **Example Request:**
 ```bash
@@ -607,6 +607,24 @@ curl -X POST http://localhost:3000/api/admin/credentials \
 {
   "success": false,
   "error": "Username is required"
+}
+```
+```json
+{
+  "success": false,
+  "error": "Password is required"
+}
+```
+```json
+{
+  "success": false,
+  "error": "Password cannot contain colon (:) character"
+}
+```
+```json
+{
+  "success": false,
+  "error": "Username cannot contain colon (:) character"
 }
 ```
 
