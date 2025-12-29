@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 // Using third-party API since CodeChef has no official public API
 const CODECHEF_API = 'https://codechef-api.vercel.app/handle';
@@ -59,4 +59,4 @@ async function fetchCodeChefRating(handle) {
   }
 }
 
-module.exports = { fetchCodeChefRating };
+export { fetchCodeChefRating };

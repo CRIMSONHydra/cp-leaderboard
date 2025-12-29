@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 const GRAPHQL_URL = 'https://leetcode.com/graphql/';
 
@@ -76,4 +76,4 @@ async function fetchLeetCodeRating(handle) {
   }
 }
 
-module.exports = { fetchLeetCodeRating };
+export { fetchLeetCodeRating };

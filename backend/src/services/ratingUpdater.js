@@ -1,6 +1,6 @@
-const User = require('../models/User');
-const UpdateLog = require('../models/UpdateLog');
-const fetchers = require('./platformFetchers');
+import User from '../models/User.js';
+import UpdateLog from '../models/UpdateLog.js';
+import fetchers from './platformFetchers/index.js';
 
 // Aggregate score calculation weights
 // Platforms have similar scales (~800-3500), slight adjustments for typical ranges
@@ -116,10 +116,4 @@ async function updateAllUsers() {
   }
 }
 
-module.exports = {
-  updateAllUsers,
-  updateSingleUser,
-  calculateAggregateScore,
-  PLATFORMS,
-  WEIGHTS
-};
+export { updateAllUsers, updateSingleUser, calculateAggregateScore, PLATFORMS, WEIGHTS };

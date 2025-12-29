@@ -1,14 +1,15 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from 'express';
+import {
   triggerUpdate,
   updateUser,
   getUpdateStatus
-} = require('../controllers/updateController');
-const { updateLimiter } = require('../middlewares/rateLimiter');
+} from '../controllers/updateController.js';
+import { updateLimiter } from '../middlewares/rateLimiter.js';
+
+const router = express.Router();
 
 router.post('/trigger', triggerUpdate);
 router.post('/user/:id', updateLimiter, updateUser);
 router.get('/status', getUpdateStatus);
 
-module.exports = router;
+export default router;

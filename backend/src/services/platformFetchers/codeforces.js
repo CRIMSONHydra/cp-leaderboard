@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 const BASE_URL = 'https://codeforces.com/api';
 const RATE_LIMIT_DELAY = 250; // 4 req/sec to be safe (limit is 5/sec)
@@ -49,4 +49,4 @@ async function fetchCodeforcesRating(handle) {
   }
 }
 
-module.exports = { fetchCodeforcesRating };
+export { fetchCodeforcesRating };

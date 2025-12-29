@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 function getRankFromRating(rating) {
   if (rating >= 2800) return 'Red';
@@ -58,4 +58,4 @@ async function fetchAtCoderRating(handle) {
   }
 }
 
-module.exports = { fetchAtCoderRating };
+export { fetchAtCoderRating };

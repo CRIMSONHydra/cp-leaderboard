@@ -1,11 +1,16 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const connectDB = require('./config/database');
-const routes = require('./routes');
-const errorHandler = require('./middlewares/errorHandler');
-const { apiLimiter } = require('./middlewares/rateLimiter');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import connectDB from './config/database.js';
+import routes from './routes/index.js';
+import errorHandler from './middlewares/errorHandler.js';
+import { apiLimiter } from './middlewares/rateLimiter.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -48,4 +53,4 @@ app.listen(PORT, () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-module.exports = app;
+export default app;

@@ -1,7 +1,12 @@
-const { fetchCodeforcesRating } = require('./codeforces');
-const { fetchAtCoderRating } = require('./atcoder');
-const { fetchLeetCodeRating } = require('./leetcode');
-const { fetchCodeChefRating } = require('./codechef');
+import { fetchCodeforcesRating } from './codeforces.js';
+import { fetchAtCoderRating } from './atcoder.js';
+import { fetchLeetCodeRating } from './leetcode.js';
+import { fetchCodeChefRating } from './codechef.js';
+
+export const codeforces = fetchCodeforcesRating;
+export const atcoder = fetchAtCoderRating;
+export const leetcode = fetchLeetCodeRating;
+export const codechef = fetchCodeChefRating;
 
 const fetchers = {
   codeforces: fetchCodeforcesRating,
@@ -10,4 +15,4 @@ const fetchers = {
   codechef: fetchCodeChefRating
 };
 
-module.exports = fetchers;
+export default fetchers;

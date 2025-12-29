@@ -1,8 +1,15 @@
-const express = require('express');
+import express from 'express';
+import leaderboardRouter from './leaderboard.js';
+import updateRouter from './update.js';
+import usersRouter from './users.js';
+import adminRouter from './admin.js';
+
 const router = express.Router();
 
-router.use('/leaderboard', require('./leaderboard'));
-router.use('/update', require('./update'));
+router.use('/leaderboard', leaderboardRouter);
+router.use('/update', updateRouter);
+router.use('/users', usersRouter);
+router.use('/admin', adminRouter);
 
 // Health check
 router.get('/health', (req, res) => {
@@ -12,4 +19,4 @@ router.get('/health', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

@@ -1,6 +1,6 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
-const mongoose = require('mongoose');
-const User = require('../models/User');
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
 
 // Sample users - replace with your actual users
 const sampleUsers = [

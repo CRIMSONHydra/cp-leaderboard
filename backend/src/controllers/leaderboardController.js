@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const { PLATFORMS } = require('../services/ratingUpdater');
+import User from '../models/User.js';
+import { PLATFORMS } from '../services/ratingUpdater.js';
 
 // GET /api/leaderboard - Get full leaderboard sorted by aggregate score
 const getLeaderboard = async (req, res) => {
@@ -119,9 +119,4 @@ const getStats = async (req, res) => {
   }
 };
 
-module.exports = {
-  getLeaderboard,
-  getPlatformLeaderboard,
-  getUserDetails,
-  getStats
-};
+export { getLeaderboard, getPlatformLeaderboard, getUserDetails, getStats };

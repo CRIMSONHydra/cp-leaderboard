@@ -1,6 +1,6 @@
-const { updateAllUsers, updateSingleUser } = require('../services/ratingUpdater');
-const User = require('../models/User');
-const UpdateLog = require('../models/UpdateLog');
+import { updateAllUsers, updateSingleUser } from '../services/ratingUpdater.js';
+import User from '../models/User.js';
+import UpdateLog from '../models/UpdateLog.js';
 
 // POST /api/update/trigger - Manually trigger update (for cron endpoint)
 const triggerUpdate = async (req, res) => {
@@ -66,8 +66,4 @@ const getUpdateStatus = async (req, res) => {
   }
 };
 
-module.exports = {
-  triggerUpdate,
-  updateUser,
-  getUpdateStatus
-};
+export { triggerUpdate, updateUser, getUpdateStatus };

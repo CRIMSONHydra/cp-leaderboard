@@ -1,7 +1,7 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-async function fetchJSON(url) {
-  const response = await fetch(`${API_BASE}${url}`);
+async function fetchJSON(url, options = {}) {
+  const response = await fetch(`${API_BASE}${url}`, options);
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Network error' }));
     throw new Error(error.error || `HTTP error! status: ${response.status}`);
@@ -26,5 +26,39 @@ export const api = {
     fetchJSON('/update/status'),
 
   getHealth: () =>
-    fetchJSON('/health')
+    fetchJSON('/health'),
+
+  addUser: (userData, username, password) => {
+    const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
+    return fetchJSON('/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader
+      },
+      body: JSON.stringify(userData)
+    });
+  },
+
+  addAdminCredential: (credentialData, username, password) => {
+    const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
+    return fetchJSON('/admin/credentials', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader
+      },
+      body: JSON.stringify(credentialData)
+    });
+  },
+
+  verifyAuth: (username, password) => {
+    const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
+    return fetchJSON('/admin/verify', {
+      method: 'GET',
+      headers: {
+        'Authorization': authHeader
+      }
+    });
+  }
 };

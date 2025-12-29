@@ -4,9 +4,9 @@
  * Schedule: every 12 hours
  */
 
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
-const mongoose = require('mongoose');
-const { updateAllUsers } = require('../services/ratingUpdater');
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import { updateAllUsers } from '../services/ratingUpdater.js';
 
 async function runUpdate() {
   const startTime = Date.now();

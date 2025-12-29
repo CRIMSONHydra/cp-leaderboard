@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const updateLogSchema = new mongoose.Schema({
   startedAt: { type: Date, required: true },
@@ -21,4 +21,4 @@ const updateLogSchema = new mongoose.Schema({
 // Index for finding latest update
 updateLogSchema.index({ createdAt: -1 });
 
-module.exports = mongoose.model('UpdateLog', updateLogSchema);
+export default mongoose.model('UpdateLog', updateLogSchema);

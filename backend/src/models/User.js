@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const platformRatingSchema = new mongoose.Schema({
   rating: { type: Number, default: null },
@@ -41,4 +41,4 @@ userSchema.index({ 'ratings.leetcode.rating': -1 });
 userSchema.index({ 'ratings.codechef.rating': -1 });
 userSchema.index({ isActive: 1 });
 
-module.exports = mongoose.model('User', userSchema);
+export default mongoose.model('User', userSchema);
