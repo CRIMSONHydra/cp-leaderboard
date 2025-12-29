@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import UpdateLog from '../models/UpdateLog.js';
 import fetchers from './platformFetchers/index.js';
+import { getRankFromRating as getLeetCodeRank } from './platformFetchers/leetcode.js';
 
 const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
 
@@ -117,12 +118,36 @@ function calculateAggregateScore(ratings) {
 async function updateSingleUser(user) {
   const updates = {};
   const errors = [];
+  const currentRatings = user.ratings?.toObject?.() || user.ratings || {};
 
   for (const platform of PLATFORMS) {
     const handle = user.handles?.[platform];
     if (handle && fetchers[platform]) {
       try {
         const result = await fetchers[platform](handle);
+        
+        // Preserve maxRating if current stored value is higher
+        const storedMaxRating = currentRatings[platform]?.maxRating;
+        const newRating = result.rating;
+        const fetchedMaxRating = result.maxRating;
+        
+        // Determine the actual maxRating
+        let actualMaxRating = fetchedMaxRating;
+        if (storedMaxRating && (!fetchedMaxRating || storedMaxRating > fetchedMaxRating)) {
+          actualMaxRating = storedMaxRating;
+        }
+        if (newRating && (!actualMaxRating || newRating > actualMaxRating)) {
+          actualMaxRating = newRating;
+        }
+        
+        // Update maxRating in result
+        result.maxRating = actualMaxRating;
+        
+        // Derive maxRank from maxRating for LeetCode (it doesn't provide maxRank)
+        if (platform === 'leetcode' && actualMaxRating && !result.maxRank) {
+          result.maxRank = getLeetCodeRank(actualMaxRating);
+        }
+        
         updates[`ratings.${platform}`] = result;
         if (result.error) {
           errors.push({ userId: user._id, platform, error: result.error });
@@ -131,8 +156,9 @@ async function updateSingleUser(user) {
         const errorMsg = error.message || 'Unknown error';
         updates[`ratings.${platform}`] = {
           rating: null,
-          maxRating: null,
+          maxRating: currentRatings[platform]?.maxRating || null, // Preserve stored maxRating on error
           rank: null,
+          maxRank: null,
           lastUpdated: new Date(),
           error: errorMsg
         };
@@ -144,7 +170,6 @@ async function updateSingleUser(user) {
   }
 
   // Calculate new aggregate score
-  const currentRatings = user.ratings?.toObject?.() || user.ratings || {};
   const mergedRatings = { ...currentRatings };
   for (const [key, value] of Object.entries(updates)) {
     const platform = key.replace('ratings.', '');

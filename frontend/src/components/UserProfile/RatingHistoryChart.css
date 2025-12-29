@@ -18,11 +18,23 @@
 }
 
 .chart-tooltip {
-  background: #0f0f1a;
+  background: rgba(15, 15, 26, 0.95);
   border: 1px solid #333;
   border-radius: 8px;
   padding: 0.75rem 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  max-width: 200px;
+}
+
+.chart-tooltip-compact {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.chart-tooltip-compact .tooltip-date {
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .tooltip-date {
@@ -31,6 +43,7 @@
   margin-bottom: 0.5rem;
   border-bottom: 1px solid #333;
   padding-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 
 .tooltip-contest {

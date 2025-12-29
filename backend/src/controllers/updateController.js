@@ -2,6 +2,9 @@ import { updateAllUsers, updateSingleUser } from '../services/ratingUpdater.js';
 import User from '../models/User.js';
 import UpdateLog from '../models/UpdateLog.js';
 
+// Stale update timeout (30 minutes)
+const STALE_UPDATE_TIMEOUT_MS = 30 * 60 * 1000;
+
 // POST /api/update/trigger - Manually trigger update (for cron endpoint)
 const triggerUpdate = async (req, res) => {
   try {
@@ -11,14 +14,54 @@ const triggerUpdate = async (req, res) => {
       return res.status(401).json({ success: false, error: 'Unauthorized' });
     }
 
-    // Check if an update is already running
-    const runningUpdate = await UpdateLog.findOne({ status: 'running' });
-    if (runningUpdate) {
-      return res.status(409).json({
-        success: false,
-        error: 'An update is already in progress',
-        startedAt: runningUpdate.startedAt
-      });
+    // Check for force flag to skip running check
+    const forceUpdate = req.query.force === 'true';
+
+    // Mark stale updates as failed (running for more than 30 minutes)
+    const staleThreshold = new Date(Date.now() - STALE_UPDATE_TIMEOUT_MS);
+    const staleUpdates = await UpdateLog.updateMany(
+      { 
+        status: 'running', 
+        startedAt: { $lt: staleThreshold } 
+      },
+      { 
+        $set: { 
+          status: 'failed', 
+          completedAt: new Date(),
+          errors: [{ error: 'Update timed out (marked as stale)' }]
+        } 
+      }
+    );
+    
+    if (staleUpdates.modifiedCount > 0) {
+      console.log(`Marked ${staleUpdates.modifiedCount} stale update(s) as failed`);
+    }
+
+    // Check if an update is already running (unless force flag is set)
+    if (!forceUpdate) {
+      const runningUpdate = await UpdateLog.findOne({ status: 'running' });
+      if (runningUpdate) {
+        const runningForMs = Date.now() - new Date(runningUpdate.startedAt).getTime();
+        const runningForMins = Math.round(runningForMs / 60000);
+        return res.status(409).json({
+          success: false,
+          error: `An update is already in progress (running for ${runningForMins} min)`,
+          startedAt: runningUpdate.startedAt,
+          hint: 'Add ?force=true to override if the update is stuck'
+        });
+      }
+    } else {
+      // Force flag: mark any running updates as failed before starting new one
+      await UpdateLog.updateMany(
+        { status: 'running' },
+        { 
+          $set: { 
+            status: 'failed', 
+            completedAt: new Date(),
+            errors: [{ error: 'Forcefully terminated by new update request' }]
+          } 
+        }
+      );
     }
 
     // Start update

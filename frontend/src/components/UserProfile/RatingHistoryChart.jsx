@@ -32,18 +32,14 @@ function formatDate(dateString) {
   });
 }
 
-function CustomTooltip({ active, payload, label }) {
+function CombinedTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
     return (
-      <div className="chart-tooltip">
+      <div className="chart-tooltip chart-tooltip-compact">
         <p className="tooltip-date">{new Date(label).toLocaleDateString()}</p>
         {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color }}>
+          <p key={index} style={{ color: entry.color, margin: '2px 0' }}>
             {entry.name}: {entry.value}
-            {data[`${entry.dataKey}Contest`] && (
-              <span className="tooltip-contest"> ({data[`${entry.dataKey}Contest`]})</span>
-            )}
           </p>
         ))}
       </div>
@@ -54,7 +50,6 @@ function CustomTooltip({ active, payload, label }) {
 
 export default function RatingHistoryChart({ history, platforms }) {
   // Combine all platform histories into a single timeline
-  const combinedData = [];
   const dateMap = new Map();
 
   for (const platform of platforms) {
@@ -121,7 +116,11 @@ export default function RatingHistoryChart({ history, platforms }) {
             tick={{ fill: '#888' }}
             domain={['auto', 'auto']}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip 
+            content={<CombinedTooltip />} 
+            position={{ x: 60, y: 10 }}
+            allowEscapeViewBox={{ x: true, y: true }}
+          />
           <Legend />
           {platforms.map(platform => (
             history[platform]?.success && history[platform]?.data?.length > 0 && (

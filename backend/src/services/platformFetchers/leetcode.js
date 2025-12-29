@@ -2,6 +2,20 @@ import axios from 'axios';
 
 const GRAPHQL_URL = 'https://leetcode.com/graphql/';
 
+/**
+ * Get approximate rank tier from LeetCode rating
+ * Based on community research of rating distributions
+ */
+function getRankFromRating(rating) {
+  if (rating >= 3000) return 'Guardian';
+  if (rating >= 2600) return 'Knight';
+  if (rating >= 2200) return 'Top 5%';
+  if (rating >= 1900) return 'Top 10%';
+  if (rating >= 1700) return 'Top 20%';
+  if (rating >= 1500) return 'Top 30%';
+  return 'Beginner';
+}
+
 async function fetchLeetCodeRating(handle) {
   const query = `
     query userContestRankingInfo($username: String!) {
@@ -80,4 +94,4 @@ async function fetchLeetCodeRating(handle) {
   }
 }
 
-export { fetchLeetCodeRating };
+export { fetchLeetCodeRating, getRankFromRating };
