@@ -132,8 +132,8 @@ export default function RatingHistoryChart({ history, platforms }) {
                 name={PLATFORM_NAMES[platform]}
                 stroke={PLATFORM_COLORS[platform]}
                 strokeWidth={2}
-                dot={{ r: 3 }}
-                activeDot={{ r: 6 }}
+                dot={false}
+                activeDot={{ r: 5 }}
                 connectNulls
               />
             )
