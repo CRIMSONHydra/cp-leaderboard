@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import { getPlatformColor } from '../utils/ratingUtils';
 import RatingHistoryChart, { SinglePlatformChart } from '../components/UserProfile/RatingHistoryChart';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -137,7 +138,10 @@ export default function UserProfilePage() {
                     </td>
                     <td>
                       {rating?.rating ? (
-                        <span className="rating-value" style={{ color: info.color }}>
+                        <span 
+                          className="rating-value" 
+                          style={{ color: getPlatformColor(platform, rating.rating, rating.rank) }}
+                        >
                           {rating.rating}
                         </span>
                       ) : (
@@ -146,21 +150,36 @@ export default function UserProfilePage() {
                     </td>
                     <td>
                       {rating?.maxRating ? (
-                        <span className="max-rating">{rating.maxRating}</span>
+                        <span 
+                          className="max-rating" 
+                          style={{ color: getPlatformColor(platform, rating.maxRating, rating.maxRank) }}
+                        >
+                          {rating.maxRating}
+                        </span>
                       ) : (
                         <span className="no-data">—</span>
                       )}
                     </td>
                     <td>
                       {rating?.rank ? (
-                        <span className="rank-text">{rating.rank}</span>
+                        <span 
+                          className="rank-text"
+                          style={{ color: getPlatformColor(platform, rating.rating, rating.rank) }}
+                        >
+                          {rating.rank}
+                        </span>
                       ) : (
                         <span className="no-data">—</span>
                       )}
                     </td>
                     <td>
                       {rating?.maxRank ? (
-                        <span className="rank-text">{rating.maxRank}</span>
+                        <span 
+                          className="rank-text"
+                          style={{ color: getPlatformColor(platform, rating.maxRating, rating.maxRank) }}
+                        >
+                          {rating.maxRank}
+                        </span>
                       ) : (
                         <span className="no-data">—</span>
                       )}

@@ -32,6 +32,30 @@ async function fetchCodeforcesHistory(handle) {
 }
 
 /**
+ * Clean up AtCoder contest name by removing Japanese text
+ * AtCoder often provides names like "日本語名 / English Name"
+ */
+function cleanAtCoderContestName(name) {
+  if (!name) return 'Contest';
+  
+  // If there's a " / " separator, take the part with more ASCII characters
+  if (name.includes(' / ')) {
+    const parts = name.split(' / ');
+    // Count ASCII characters in each part
+    const asciiCount = parts.map(p => (p.match(/[a-zA-Z0-9]/g) || []).length);
+    // Pick the part with more ASCII (usually English)
+    const englishPart = asciiCount[0] >= asciiCount[1] ? parts[0] : parts[1];
+    return englishPart.trim();
+  }
+  
+  // Remove Japanese characters if no separator found
+  // Keep alphanumeric, spaces, and common punctuation
+  const cleaned = name.replace(/[^\x00-\x7F]/g, '').trim();
+  
+  return cleaned || name; // Return original if cleaning removes everything
+}
+
+/**
  * Fetch rating history from AtCoder API
  * @param {string} handle - AtCoder handle
  * @returns {Promise<Array>} Array of rating history entries
@@ -46,7 +70,7 @@ async function fetchAtCoderHistory(handle) {
     const history = response.data.map(entry => ({
       date: new Date(entry.EndTime).toISOString(),
       rating: entry.NewRating,
-      contestName: entry.ContestName,
+      contestName: cleanAtCoderContestName(entry.ContestName),
       rank: entry.Place,
       change: entry.NewRating - entry.OldRating,
       performance: entry.Performance
