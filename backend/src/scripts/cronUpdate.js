@@ -1,7 +1,7 @@
 /**
  * Standalone cron script for updating all user ratings.
  * Run this with a cron job scheduler (e.g., Render Cron Jobs).
- * Schedule: 0 */12 * * * (every 12 hours)
+ * Schedule: every 12 hours
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
