@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { getPlatformColor } from '../utils/ratingUtils';
 import RatingHistoryChart, { SinglePlatformChart } from '../components/UserProfile/RatingHistoryChart';
+import Tooltip from '../components/common/Tooltip';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
 import './UserProfilePage.css';
@@ -90,8 +91,13 @@ export default function UserProfilePage() {
       <div className="profile-header">
         <h1 className="user-name">{userData.name}</h1>
         <div className="aggregate-badge">
-          <span className="aggregate-label">Normalized Score</span>
-          <span className="aggregate-value">{userData.aggregateScore || 0}</span>
+          <span className="aggregate-label">
+            Aggregate Score
+            <Tooltip content="Normalized aggregate score calculated from all platform ratings. Each platform rating is converted to a 0-100 scale based on skill tiers, then averaged.">
+              <span className="info-badge">ⓘ</span>
+            </Tooltip>
+          </span>
+          <span className="aggregate-value">{userData.aggregateScore || 0}/100</span>
         </div>
       </div>
 

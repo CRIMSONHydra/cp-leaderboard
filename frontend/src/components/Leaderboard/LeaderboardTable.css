@@ -46,6 +46,34 @@
   width: 120px;
 }
 
+.aggregate-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: help;
+  transition: all 0.2s;
+}
+
+.info-icon:hover {
+  background: #2c3e50;
+  color: white;
+  transform: scale(1.1);
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;

@@ -1,6 +1,7 @@
 import { useLeaderboard } from '../../hooks/useLeaderboard';
 import LeaderboardRow from './LeaderboardRow';
 import SortButton from '../common/SortButton';
+import Tooltip from '../common/Tooltip';
 import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import './LeaderboardTable.css';
@@ -52,12 +53,17 @@ export default function LeaderboardTable() {
               </th>
             ))}
             <th className="aggregate-col">
-              <SortButton
-                label="Aggregate"
-                active={sortBy === 'aggregate'}
-                direction={sortBy === 'aggregate' ? sortOrder : null}
-                onClick={() => handleSort('aggregate')}
-              />
+              <div className="aggregate-header">
+                <SortButton
+                  label="Aggregate"
+                  active={sortBy === 'aggregate'}
+                  direction={sortBy === 'aggregate' ? sortOrder : null}
+                  onClick={() => handleSort('aggregate')}
+                />
+                <Tooltip content="Normalized aggregate score (0-100) calculated from all platform ratings. Higher ratings on each platform contribute to a higher aggregate score.">
+                  <span className="info-icon">ⓘ</span>
+                </Tooltip>
+              </div>
             </th>
           </tr>
         </thead>
