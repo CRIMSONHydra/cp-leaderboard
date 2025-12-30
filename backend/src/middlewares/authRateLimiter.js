@@ -215,7 +215,11 @@ async function recordFailedAttemptRedis(key, redis) {
     entry = { count: 1, resetAt: now + WINDOW_MS, lockedUntil: null };
   }
 
-  const ttl = Math.ceil((entry.resetAt - now) / 1000);
+  // Use the maximum of resetAt and lockedUntil to preserve lockout state
+  const expiresAt = entry.lockedUntil && entry.lockedUntil > entry.resetAt 
+    ? entry.lockedUntil 
+    : entry.resetAt;
+  const ttl = Math.ceil((expiresAt - now) / 1000);
   await redis.setex(key, ttl, JSON.stringify(entry));
 }
 
