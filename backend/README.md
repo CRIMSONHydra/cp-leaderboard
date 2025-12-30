@@ -479,16 +479,19 @@ curl -X POST https://your-domain.com/api/update/trigger \
 
 Manually update ratings for a specific user.
 
-**Authentication:** None (but rate-limited)
+**Authentication:** Required (Basic Auth)
 
 **URL Parameters:**
 - `id` (required): MongoDB ObjectId of the user
 
-**Rate Limiting:** 10 requests per hour per IP
+**Rate Limiting:** 
+- Authentication rate limiting (5 failed attempts per 15 min)
+- 10 requests per hour per IP
 
 **Example Request:**
 ```bash
-curl -X POST http://localhost:3000/api/update/user/507f1f77bcf86cd799439011
+curl -X POST http://localhost:3000/api/update/user/507f1f77bcf86cd799439011 \
+  -u username:password
 ```
 
 **Response:**
