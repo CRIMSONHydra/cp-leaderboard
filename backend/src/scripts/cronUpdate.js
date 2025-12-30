@@ -8,84 +8,13 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import { updateAllUsers } from '../services/ratingUpdater.js';
 import UpdateLog from '../models/UpdateLog.js';
-
-// Fixed ID for the global update lock document
-const LOCK_ID = 'GLOBAL_UPDATE_LOCK';
-
-// Stale update timeout (30 minutes)
-const STALE_UPDATE_TIMEOUT_MS = 30 * 60 * 1000;
-
-/**
- * Generate a unique owner identifier for this process
- */
-function generateOwnerId() {
-  return `cron-${process.pid}-${Date.now()}`;
-}
-
-/**
- * Atomically acquire the global update lock using a fixed document ID.
- */
-async function acquireUpdateLock() {
-  const owner = generateOwnerId();
-  const now = new Date();
-  
-  try {
-    const lock = await UpdateLog.findOneAndUpdate(
-      {
-        _id: LOCK_ID,
-        status: { $ne: 'running' }
-      },
-      {
-        $set: {
-          _id: LOCK_ID,
-          startedAt: now,
-          status: 'running',
-          owner: owner,
-          usersUpdated: 0,
-          completedAt: null,
-          errors: []
-        }
-      },
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true
-      }
-    );
-    
-    if (lock) {
-      return { success: true, lock };
-    }
-    
-    const existingLock = await UpdateLog.findById(LOCK_ID);
-    return { success: false, existingLock };
-  } catch (error) {
-    if (error.code === 11000) {
-      const existingLock = await UpdateLog.findById(LOCK_ID);
-      return { success: false, existingLock };
-    }
-    throw error;
-  }
-}
-
-/**
- * Release the update lock
- */
-async function releaseUpdateLock(status, updates = {}) {
-  await UpdateLog.findByIdAndUpdate(
-    LOCK_ID,
-    {
-      $set: {
-        status,
-        completedAt: new Date(),
-        ...updates
-      },
-      $unset: {
-        owner: ''
-      }
-    }
-  );
-}
+import {
+  LOCK_ID,
+  STALE_UPDATE_TIMEOUT_MS,
+  generateOwnerId,
+  acquireUpdateLock,
+  releaseUpdateLock
+} from '../services/updateLock.js';
 
 async function runUpdate() {
   const startTime = Date.now();
@@ -117,7 +46,8 @@ async function runUpdate() {
     }
 
     // Acquire lock
-    const lockResult = await acquireUpdateLock();
+    const owner = generateOwnerId('cron');
+    const lockResult = await acquireUpdateLock(owner);
     if (!lockResult.success) {
       const runningForMs = Date.now() - new Date(lockResult.existingLock.startedAt).getTime();
       console.log(`Another update is already running (${Math.round(runningForMs / 60000)} min). Skipping.`);
