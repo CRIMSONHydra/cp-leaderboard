@@ -19,7 +19,7 @@ export const STALE_UPDATE_TIMEOUT_MS = 30 * 60 * 1000;
 export function generateOwnerId(prefix = '') {
   const pid = process.pid;
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substr(2, 9);
+  const random = Math.random().toString(36).slice(2, 11);
   
   return prefix 
     ? `${prefix}-${pid}-${timestamp}-${random}`
