@@ -2,6 +2,19 @@
 
 React + Vite frontend application for the Competitive Programming Leaderboard.
 
+## Browser Requirements
+
+This application requires modern browser features:
+
+- **TextEncoder/TextDecoder API** - Required for Unicode-safe Basic Authentication
+  - Chrome 38+ (October 2014)
+  - Firefox 18+ (January 2013)
+  - Safari 10.1+ (March 2017)
+  - Edge 12+ (July 2015)
+  - Opera 25+ (October 2014)
+
+For older browsers, include a polyfill: https://github.com/inexorabletash/text-encoding
+
 ## ⚠️ Important: Shared Constants
 
 Platform definitions (PLATFORMS array) are defined in `shared/constants.js` at the repository root. **Never duplicate these constants in frontend code.** Always import from:
@@ -89,6 +102,7 @@ frontend/
 │   ├── services/
 │   │   └── api.js           # API client with Unicode-safe Basic Auth
 │   └── utils/
+│       ├── encoding.js      # Unicode-safe Base64 encoding (requires TextEncoder)
 │       ├── basicAuth.js     # Basic Auth encoding utilities
 │       └── ratingUtils.js   # Rating color and formatting
 └── public/                  # Static assets
