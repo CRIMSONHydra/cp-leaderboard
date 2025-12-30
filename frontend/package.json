@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "prebuild": "node ../scripts/validate-constants.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate:constants": "node ../scripts/validate-constants.js"
   },
   "dependencies": {
     "react": "^19.2.0",

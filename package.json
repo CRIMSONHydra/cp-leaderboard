@@ -1,0 +1,25 @@
+{
+  "name": "cp-leaderboard",
+  "version": "1.0.0",
+  "description": "CP Leaderboard - Competitive Programming Rating Tracker",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "validate:constants": "node scripts/validate-constants.js",
+    "pretest": "npm run validate:constants",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "keywords": [
+    "competitive-programming",
+    "leaderboard",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.24.0"
+}
+

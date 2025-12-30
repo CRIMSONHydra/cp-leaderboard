@@ -1,6 +1,8 @@
 /**
  * Platform constants
- * Shared list of supported competitive programming platforms
+ * Re-exported from shared constants to maintain single source of truth
+ * 
+ * IMPORTANT: Import from '../../../shared/constants.js' - do not duplicate!
  */
-export const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
+export { PLATFORMS, PLATFORM_NAMES, PLATFORM_URLS } from '../../../shared/constants.js';
 

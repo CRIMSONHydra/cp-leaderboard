@@ -2,6 +2,16 @@
 
 Backend API for Competitive Programming Leaderboard - tracks ratings from Codeforces, AtCoder, LeetCode, and CodeChef.
 
+## ⚠️ Important: Shared Constants
+
+Platform definitions (PLATFORMS array) are defined in `shared/constants.js` at the repository root. **Never duplicate these constants in backend code.** Always import from:
+
+```javascript
+import { PLATFORMS } from '../../shared/constants.js';
+```
+
+A validation script runs automatically during builds to ensure consistency.
+
 ## Base URL
 
 ```

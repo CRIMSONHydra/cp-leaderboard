@@ -2,8 +2,7 @@ import User from '../models/User.js';
 import UpdateLog from '../models/UpdateLog.js';
 import fetchers from './platformFetchers/index.js';
 import { getRankFromRating as getLeetCodeRank } from './platformFetchers/leetcode.js';
-
-const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
+import { PLATFORMS } from '../../../shared/constants.js';
 
 // Normalization tiers for each platform
 // Maps platform ratings to a common 0-100 scale based on skill levels
