@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
+import { PLATFORMS } from '../../constants/platforms';
 import RatingDisplay from './RatingDisplay';
 import './LeaderboardRow.css';
-
-const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
 
 export default function LeaderboardRow({ user, rank }) {
   return (

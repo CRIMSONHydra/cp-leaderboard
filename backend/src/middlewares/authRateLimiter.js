@@ -2,21 +2,13 @@
  * Authentication Rate Limiter
  * Tracks failed authentication attempts by IP and username
  * 
- * Uses in-memory store for development. For production with multiple instances,
- * consider migrating to Redis for shared state:
- * 
- * ```javascript
- * import Redis from 'ioredis';
- * const redis = new Redis(process.env.REDIS_URL);
- * 
- * // Replace Map operations with Redis commands:
- * // failedAttemptsStore.get(key) -> redis.get(key)
- * // failedAttemptsStore.set(key, value) -> redis.setex(key, ttl, JSON.stringify(value))
- * // failedAttemptsStore.delete(key) -> redis.del(key)
- * ```
+ * Uses Redis for distributed deployments (when REDIS_URL is set),
+ * otherwise falls back to in-memory store for development.
  */
 
-// In-memory store for failed attempts
+import { getRedisClient, isRedisEnabled } from '../config/redisStore.js';
+
+// In-memory store for failed attempts (fallback when Redis is not available)
 // Structure: { key: { count: number, resetAt: Date, lockedUntil: Date } }
 const failedAttemptsStore = new Map();
 
@@ -67,13 +59,9 @@ function cleanupExpiredEntries() {
 setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
 
 /**
- * Check if authentication attempt should be blocked
- * @param {string} ip - Client IP
- * @param {string} username - Username
- * @returns {object} { blocked: boolean, reason?: string, retryAfter?: number }
+ * Check if authentication attempt should be blocked (in-memory version)
  */
-function checkAuthLimit(ip, username) {
-  const key = generateKey(ip, username);
+function checkAuthLimitInMemory(key) {
   const now = Date.now();
   const entry = failedAttemptsStore.get(key);
 
@@ -83,7 +71,7 @@ function checkAuthLimit(ip, username) {
 
   // Check if account is locked
   if (entry.lockedUntil && entry.lockedUntil > now) {
-    const retryAfter = Math.ceil((entry.lockedUntil - now) / 1000); // seconds
+    const retryAfter = Math.ceil((entry.lockedUntil - now) / 1000);
     return {
       blocked: true,
       reason: 'Too many failed authentication attempts. Account temporarily locked.',
@@ -99,16 +87,14 @@ function checkAuthLimit(ip, username) {
 
   // Check if threshold exceeded
   if (entry.count >= MAX_FAILED_ATTEMPTS) {
-    // Apply lockout
     const lockedUntil = now + LOCKOUT_DURATION_MS;
     entry.lockedUntil = lockedUntil;
     failedAttemptsStore.set(key, entry);
     
-    const retryAfter = Math.ceil(LOCKOUT_DURATION_MS / 1000);
     return {
       blocked: true,
       reason: 'Too many failed authentication attempts. Account temporarily locked.',
-      retryAfter
+      retryAfter: Math.ceil(LOCKOUT_DURATION_MS / 1000)
     };
   }
 
@@ -116,20 +102,81 @@ function checkAuthLimit(ip, username) {
 }
 
 /**
- * Record a failed authentication attempt
+ * Check if authentication attempt should be blocked (Redis version)
+ */
+async function checkAuthLimitRedis(key, redis) {
+  const now = Date.now();
+  const data = await redis.get(key);
+
+  if (!data) {
+    return { blocked: false };
+  }
+
+  const entry = JSON.parse(data);
+
+  // Check if account is locked
+  if (entry.lockedUntil && entry.lockedUntil > now) {
+    const retryAfter = Math.ceil((entry.lockedUntil - now) / 1000);
+    return {
+      blocked: true,
+      reason: 'Too many failed authentication attempts. Account temporarily locked.',
+      retryAfter
+    };
+  }
+
+  // Check if window has expired
+  if (entry.resetAt < now) {
+    await redis.del(key);
+    return { blocked: false };
+  }
+
+  // Check if threshold exceeded
+  if (entry.count >= MAX_FAILED_ATTEMPTS) {
+    entry.lockedUntil = now + LOCKOUT_DURATION_MS;
+    const ttl = Math.ceil(LOCKOUT_DURATION_MS / 1000);
+    await redis.setex(key, ttl, JSON.stringify(entry));
+    
+    return {
+      blocked: true,
+      reason: 'Too many failed authentication attempts. Account temporarily locked.',
+      retryAfter: ttl
+    };
+  }
+
+  return { blocked: false };
+}
+
+/**
+ * Check if authentication attempt should be blocked
  * @param {string} ip - Client IP
  * @param {string} username - Username
+ * @returns {Promise<object>} { blocked: boolean, reason?: string, retryAfter?: number }
  */
-function recordFailedAttempt(ip, username) {
+async function checkAuthLimit(ip, username) {
   const key = generateKey(ip, username);
+  const redis = getRedisClient();
+
+  if (redis && isRedisEnabled()) {
+    try {
+      return await checkAuthLimitRedis(key, redis);
+    } catch (error) {
+      console.error('Redis error in checkAuthLimit, falling back to in-memory:', error.message);
+    }
+  }
+
+  return checkAuthLimitInMemory(key);
+}
+
+/**
+ * Record a failed authentication attempt (in-memory version)
+ */
+function recordFailedAttemptInMemory(key) {
   const now = Date.now();
   const entry = failedAttemptsStore.get(key);
 
   if (entry && entry.resetAt > now) {
-    // Increment existing counter
     entry.count += 1;
   } else {
-    // Create new entry
     failedAttemptsStore.set(key, {
       count: 1,
       resetAt: now + WINDOW_MS,
@@ -139,12 +186,67 @@ function recordFailedAttempt(ip, username) {
 }
 
 /**
+ * Record a failed authentication attempt (Redis version)
+ */
+async function recordFailedAttemptRedis(key, redis) {
+  const now = Date.now();
+  const data = await redis.get(key);
+
+  let entry;
+  if (data) {
+    entry = JSON.parse(data);
+    if (entry.resetAt > now) {
+      entry.count += 1;
+    } else {
+      entry = { count: 1, resetAt: now + WINDOW_MS, lockedUntil: null };
+    }
+  } else {
+    entry = { count: 1, resetAt: now + WINDOW_MS, lockedUntil: null };
+  }
+
+  const ttl = Math.ceil((entry.resetAt - now) / 1000);
+  await redis.setex(key, ttl, JSON.stringify(entry));
+}
+
+/**
+ * Record a failed authentication attempt
+ * @param {string} ip - Client IP
+ * @param {string} username - Username
+ */
+async function recordFailedAttempt(ip, username) {
+  const key = generateKey(ip, username);
+  const redis = getRedisClient();
+
+  if (redis && isRedisEnabled()) {
+    try {
+      await recordFailedAttemptRedis(key, redis);
+      return;
+    } catch (error) {
+      console.error('Redis error in recordFailedAttempt, falling back to in-memory:', error.message);
+    }
+  }
+
+  recordFailedAttemptInMemory(key);
+}
+
+/**
  * Clear failed attempts for successful authentication
  * @param {string} ip - Client IP
  * @param {string} username - Username
  */
-function clearFailedAttempts(ip, username) {
+async function clearFailedAttempts(ip, username) {
   const key = generateKey(ip, username);
+  const redis = getRedisClient();
+
+  if (redis && isRedisEnabled()) {
+    try {
+      await redis.del(key);
+      return;
+    } catch (error) {
+      console.error('Redis error in clearFailedAttempts, falling back to in-memory:', error.message);
+    }
+  }
+
   failedAttemptsStore.delete(key);
 }
 
@@ -171,20 +273,25 @@ export const authRateLimiter = async (req, res, next) => {
   }
 
   // Check if authentication should be blocked
-  const limitCheck = checkAuthLimit(ip, username);
-  
-  if (limitCheck.blocked) {
-    return res.status(429).json({
-      success: false,
-      error: limitCheck.reason,
-      retryAfter: limitCheck.retryAfter
-    });
+  try {
+    const limitCheck = await checkAuthLimit(ip, username);
+    
+    if (limitCheck.blocked) {
+      return res.status(429).json({
+        success: false,
+        error: limitCheck.reason,
+        retryAfter: limitCheck.retryAfter
+      });
+    }
+  } catch (error) {
+    console.error('Error in auth rate limiter:', error.message);
+    // Continue without rate limiting on error
   }
 
   // Attach rate limiter functions to request for use in auth middleware
   req.authRateLimiter = {
-    recordFailed: () => recordFailedAttempt(ip, username),
-    clearFailed: () => clearFailedAttempts(ip, username),
+    recordFailed: async () => await recordFailedAttempt(ip, username),
+    clearFailed: async () => await clearFailedAttempts(ip, username),
     getClientIP: () => ip
   };
 

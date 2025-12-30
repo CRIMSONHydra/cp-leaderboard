@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import './Tooltip.css';
 
+// Module-level counter for generating stable, unique tooltip IDs
+let tooltipIdCounter = 0;
+
 export default function Tooltip({ children, content }) {
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const wrapperRef = useRef(null);
   const tooltipRef = useRef(null);
+  // Generate a stable ID for the tooltip that persists across renders
+  const tooltipIdRef = useRef(`tooltip-${++tooltipIdCounter}`);
 
   useEffect(() => {
     if (visible && wrapperRef.current && tooltipRef.current) {
@@ -37,26 +42,35 @@ export default function Tooltip({ children, content }) {
     }
   }, [visible]);
 
+  const handleShow = () => setVisible(true);
+  const handleHide = () => setVisible(false);
+
   return (
     <div 
       ref={wrapperRef}
       className="tooltip-wrapper"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
+      tabIndex={0}
+      onMouseEnter={handleShow}
+      onMouseLeave={handleHide}
+      onFocus={handleShow}
+      onBlur={handleHide}
+      aria-describedby={visible ? tooltipIdRef.current : undefined}
     >
       {children}
-      {visible && (
-        <div 
-          ref={tooltipRef}
-          className={`tooltip-content ${position.showBelow ? 'tooltip-below' : ''}`}
-          style={{
-            top: `${position.top}px`,
-            left: `${position.left}px`
-          }}
-        >
-          {content}
-        </div>
-      )}
+      <div 
+        ref={tooltipRef}
+        id={tooltipIdRef.current}
+        role="tooltip"
+        aria-hidden={!visible}
+        className={`tooltip-content ${position.showBelow ? 'tooltip-below' : ''}`}
+        style={{
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+          display: visible ? 'block' : 'none'
+        }}
+      >
+        {content}
+      </div>
     </div>
   );
 }

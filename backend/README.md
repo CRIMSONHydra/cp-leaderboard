@@ -716,6 +716,10 @@ The API implements multiple rate limiting strategies:
 - **Lockout duration:** 15 minutes after exceeding threshold
 - **Applies to:** All endpoints requiring Basic Authentication
 
+### Distributed Rate Limiting
+
+For multi-instance deployments, set `REDIS_URL` to share rate limit state across all instances. Without Redis, each instance maintains its own in-memory counters, which could allow attackers to bypass limits by hitting different instances.
+
 Rate limit exceeded response:
 ```json
 {
@@ -760,12 +764,47 @@ Common HTTP status codes:
 
 ## Environment Variables
 
-Required environment variables:
+### Required
 
 - `MONGODB_URI` - MongoDB connection string
-- `CRON_SECRET` - Secret key for cron job authentication (optional, for `/api/update/trigger`)
+
+### Optional
+
 - `PORT` - Server port (default: 3000)
 - `NODE_ENV` - Environment (`development` or `production`)
+- `CRON_SECRET` - Secret key for cron job authentication (for `/api/update/trigger`)
+
+### Production Deployment
+
+- `TRUST_PROXY` - Configure Express trust proxy for correct client IP detection behind load balancers/CDNs
+  - `true` - Trust all proxies (use only if you control all proxies)
+  - `1` - Trust first proxy hop
+  - `2` - Trust up to 2 proxy hops
+  - `loopback` - Trust localhost proxies only
+  - Default: `true` in production
+  
+- `REDIS_URL` - Redis connection URL for distributed rate limiting across multiple server instances
+  - Example: `redis://localhost:6379` or `rediss://user:password@host:port`
+  - If not set, uses in-memory store (suitable for single-instance deployments)
+  - Required for clustered/multi-instance deployments to share rate limit state
+
+### Redis Setup (Optional)
+
+For production deployments with multiple server instances, Redis is recommended for consistent rate limiting:
+
+1. Install Redis packages:
+   ```bash
+   pnpm add ioredis rate-limit-redis
+   ```
+
+2. Set the `REDIS_URL` environment variable:
+   ```env
+   REDIS_URL=redis://localhost:6379
+   # or for TLS:
+   REDIS_URL=rediss://user:password@your-redis-host:6379
+   ```
+
+3. The server will automatically use Redis for rate limiting when `REDIS_URL` is configured
 
 ---
 

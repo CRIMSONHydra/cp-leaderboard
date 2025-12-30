@@ -183,16 +183,16 @@ async function updateSingleUser(user) {
 }
 
 /**
- * Run the update using a pre-created log (to avoid race conditions)
- * @param {object} log - The UpdateLog document already created by the controller
+ * Run the update using a pre-created lock document
+ * @param {object} lock - The lock document (UpdateLog with LOCK_ID)
+ * @param {function} releaseLock - Function to release the lock (status, updates)
  */
-async function updateAllUsers(log) {
+async function updateAllUsers(lock, releaseLock) {
   const allErrors = [];
+  let updated = 0;
 
   try {
     const users = await User.find({ isActive: true });
-    let updated = 0;
-
     console.log(`Starting update for ${users.length} users...`);
 
     for (const user of users) {
@@ -201,6 +201,13 @@ async function updateAllUsers(log) {
         const errors = await updateSingleUser(user);
         allErrors.push(...errors);
         updated++;
+        
+        // Update progress periodically (every 5 users)
+        if (updated % 5 === 0) {
+          await UpdateLog.findByIdAndUpdate(lock._id, {
+            $set: { usersUpdated: updated }
+          });
+        }
       } catch (error) {
         console.error(`Failed to update user ${user.name}:`, error.message);
         allErrors.push({ userId: user._id, platform: 'all', error: error.message });
@@ -210,9 +217,8 @@ async function updateAllUsers(log) {
       await new Promise(r => setTimeout(r, 500));
     }
 
-    await UpdateLog.findByIdAndUpdate(log._id, {
-      completedAt: new Date(),
-      status: 'completed',
+    // Release lock with success status
+    await releaseLock('completed', {
       usersUpdated: updated,
       errors: allErrors
     });
@@ -221,11 +227,13 @@ async function updateAllUsers(log) {
     return { success: true, usersUpdated: updated, errors: allErrors };
   } catch (error) {
     console.error('Update failed:', error);
-    await UpdateLog.findByIdAndUpdate(log._id, {
-      completedAt: new Date(),
-      status: 'failed',
-      errors: [{ error: error.message }]
+    
+    // Release lock with failed status
+    await releaseLock('failed', {
+      usersUpdated: updated,
+      errors: [...allErrors, { platform: 'system', error: error.message }]
     });
+    
     throw error;
   }
 }

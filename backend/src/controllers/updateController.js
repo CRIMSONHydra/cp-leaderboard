@@ -2,40 +2,92 @@ import { updateAllUsers, updateSingleUser } from '../services/ratingUpdater.js';
 import User from '../models/User.js';
 import UpdateLog from '../models/UpdateLog.js';
 
+// Fixed ID for the global update lock document
+const LOCK_ID = 'GLOBAL_UPDATE_LOCK';
+
 // Stale update timeout (30 minutes)
 const STALE_UPDATE_TIMEOUT_MS = 30 * 60 * 1000;
 
 /**
- * Atomically try to acquire an update lock by creating a running UpdateLog
- * and checking if we're the only one running.
+ * Generate a unique owner identifier for this process
+ */
+function generateOwnerId() {
+  return `${process.pid}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Atomically acquire the global update lock using a fixed document ID.
+ * Uses findOneAndUpdate with upsert to ensure only one process can hold the lock.
  * 
- * This prevents the race condition where:
- * 1. Request A checks for running updates (none found)
- * 2. Request B checks for running updates (none found)
- * 3. Both create their own UpdateLogs and start running
- * 
- * @returns {object} { success: boolean, log?: UpdateLog, existingLog?: UpdateLog }
+ * @returns {Promise<object>} { success: boolean, lock?: UpdateLog, existingLock?: UpdateLog }
  */
 async function acquireUpdateLock() {
-  // First, create our log immediately (optimistic approach)
-  const ourLog = await UpdateLog.create({ startedAt: new Date(), status: 'running' });
+  const owner = generateOwnerId();
+  const now = new Date();
   
-  // Now check if there are any OTHER running logs that were created before ours
-  // (using createdAt timestamp as the tie-breaker)
-  const earlierRunningLog = await UpdateLog.findOne({
-    status: 'running',
-    _id: { $ne: ourLog._id },
-    createdAt: { $lte: ourLog.createdAt }
-  }).sort({ createdAt: 1 });
-  
-  if (earlierRunningLog) {
-    // Another request beat us - delete our log and fail
-    await UpdateLog.findByIdAndDelete(ourLog._id);
-    return { success: false, existingLog: earlierRunningLog };
+  try {
+    // Atomically try to acquire the lock by updating a document with fixed ID
+    // Only succeeds if the document doesn't exist OR status is not 'running'
+    const lock = await UpdateLog.findOneAndUpdate(
+      {
+        _id: LOCK_ID,
+        status: { $ne: 'running' } // Only acquire if not already running
+      },
+      {
+        $set: {
+          _id: LOCK_ID,
+          startedAt: now,
+          status: 'running',
+          owner: owner,
+          usersUpdated: 0,
+          completedAt: null,
+          errors: []
+        }
+      },
+      {
+        upsert: true,
+        new: true, // Return the updated document
+        setDefaultsOnInsert: true
+      }
+    );
+    
+    if (lock) {
+      // Successfully acquired lock
+      return { success: true, lock };
+    }
+    
+    // Failed to acquire - lock is held by another process
+    const existingLock = await UpdateLog.findById(LOCK_ID);
+    return { success: false, existingLock };
+  } catch (error) {
+    // If error is duplicate key (E11000), another process acquired the lock
+    if (error.code === 11000) {
+      const existingLock = await UpdateLog.findById(LOCK_ID);
+      return { success: false, existingLock };
+    }
+    throw error;
   }
-  
-  // We won the race
-  return { success: true, log: ourLog };
+}
+
+/**
+ * Release the update lock by updating the status
+ * @param {string} status - 'completed' or 'failed'
+ * @param {object} updates - Additional fields to update
+ */
+async function releaseUpdateLock(status, updates = {}) {
+  await UpdateLog.findByIdAndUpdate(
+    LOCK_ID,
+    {
+      $set: {
+        status,
+        completedAt: new Date(),
+        ...updates
+      },
+      $unset: {
+        owner: '' // Clear owner on release
+      }
+    }
+  );
 }
 
 // POST /api/update/trigger - Manually trigger update (for cron endpoint)
@@ -66,58 +118,64 @@ const triggerUpdate = async (req, res) => {
     // Check for force flag to skip running check
     const forceUpdate = req.query.force === 'true';
 
-    // Mark stale updates as failed (running for more than 30 minutes)
-    const staleThreshold = new Date(Date.now() - STALE_UPDATE_TIMEOUT_MS);
-    const staleUpdates = await UpdateLog.updateMany(
-      { 
-        status: 'running', 
-        startedAt: { $lt: staleThreshold } 
-      },
-      { 
-        $set: { 
-          status: 'failed', 
-          completedAt: new Date(),
+    // Check for stale lock (running for more than 30 minutes)
+    const existingLock = await UpdateLog.findById(LOCK_ID);
+    if (existingLock && existingLock.status === 'running') {
+      const runningForMs = Date.now() - new Date(existingLock.startedAt).getTime();
+      
+      if (runningForMs > STALE_UPDATE_TIMEOUT_MS) {
+        console.log('Detected stale lock, marking as failed');
+        await releaseUpdateLock('failed', {
           errors: [{ error: 'Update timed out (marked as stale)' }]
-        } 
+        });
+      } else if (!forceUpdate) {
+        // Lock is active and not stale
+        const runningForMins = Math.round(runningForMs / 60000);
+        return res.status(409).json({
+          success: false,
+          error: `An update is already in progress (running for ${runningForMins} min)`,
+          startedAt: existingLock.startedAt,
+          owner: existingLock.owner,
+          hint: 'Add ?force=true to override if the update is stuck'
+        });
       }
-    );
-    
-    if (staleUpdates.modifiedCount > 0) {
-      console.log(`Marked ${staleUpdates.modifiedCount} stale update(s) as failed`);
     }
 
-    // Force flag: mark any running updates as failed before starting new one
-    if (forceUpdate) {
-      await UpdateLog.updateMany(
-        { status: 'running' },
-        { 
-          $set: { 
-            status: 'failed', 
-            completedAt: new Date(),
-            errors: [{ error: 'Forcefully terminated by new update request' }]
-          } 
-        }
-      );
+    // Force flag: forcefully release any running lock
+    if (forceUpdate && existingLock && existingLock.status === 'running') {
+      console.log('Force flag set, releasing existing lock');
+      await releaseUpdateLock('failed', {
+        errors: [{ error: 'Forcefully terminated by new update request' }]
+      });
     }
 
     // Atomically acquire the update lock
     const lockResult = await acquireUpdateLock();
     
     if (!lockResult.success) {
-      const existingLog = lockResult.existingLog;
-      const runningForMs = Date.now() - new Date(existingLog.startedAt).getTime();
+      const existingLockData = lockResult.existingLock;
+      const runningForMs = Date.now() - new Date(existingLockData.startedAt).getTime();
       const runningForMins = Math.round(runningForMs / 60000);
       return res.status(409).json({
         success: false,
         error: `An update is already in progress (running for ${runningForMins} min)`,
-        startedAt: existingLog.startedAt,
+        startedAt: existingLockData.startedAt,
+        owner: existingLockData.owner,
         hint: 'Add ?force=true to override if the update is stuck'
       });
     }
 
-    // Start update with our acquired log
-    const result = await updateAllUsers(lockResult.log);
-    res.json({ success: true, ...result });
+    // Start update with our acquired lock
+    try {
+      const result = await updateAllUsers(lockResult.lock, releaseUpdateLock);
+      res.json({ success: true, ...result });
+    } catch (error) {
+      // Ensure lock is released on error
+      await releaseUpdateLock('failed', {
+        errors: [{ error: `Update failed: ${error.message}` }]
+      });
+      throw error;
+    }
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -144,16 +202,15 @@ const updateUser = async (req, res) => {
   }
 };
 
-// GET /api/update/status - Get last update status
+// GET /api/update/status - Get current lock status
 const getUpdateStatus = async (req, res) => {
   try {
-    const lastUpdate = await UpdateLog.findOne()
-      .sort({ createdAt: -1 })
-      .lean();
+    // Get the global lock document to check current status
+    const currentLock = await UpdateLog.findById(LOCK_ID).lean();
 
     res.json({
       success: true,
-      data: lastUpdate || null
+      data: currentLock || null
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

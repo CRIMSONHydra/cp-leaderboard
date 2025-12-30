@@ -62,12 +62,18 @@
   border-radius: 4px;
   font-size: 1rem;
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .auth-login-form input:focus {
-  outline: none;
   border-color: #3498db;
+}
+
+.auth-login-form input:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
 }
 
 .auth-login-form input:disabled {
@@ -93,7 +99,13 @@
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, outline 0.2s, box-shadow 0.2s;
+}
+
+.auth-login-form .btn:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
 }
 
 .auth-login-form .btn-primary {
@@ -132,10 +144,16 @@
   border-radius: 4px;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, outline 0.2s, box-shadow 0.2s;
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.btn-back-to-leaderboard:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
 }
 
 .btn-back-to-leaderboard:hover {
@@ -150,7 +168,13 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, outline 0.2s, box-shadow 0.2s;
+}
+
+.btn-logout:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
 }
 
 .btn-logout:hover {

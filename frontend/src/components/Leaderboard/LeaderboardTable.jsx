@@ -1,12 +1,11 @@
 import { useLeaderboard } from '../../hooks/useLeaderboard';
+import { PLATFORMS } from '../../constants/platforms';
 import LeaderboardRow from './LeaderboardRow';
 import SortButton from '../common/SortButton';
 import Tooltip from '../common/Tooltip';
 import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import './LeaderboardTable.css';
-
-const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
 const PLATFORM_LABELS = {
   codeforces: 'Codeforces',
   atcoder: 'AtCoder',

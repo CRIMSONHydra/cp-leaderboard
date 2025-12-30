@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { PLATFORMS } from '../constants/platforms';
 import { api } from '../services/api';
 import { getPlatformColor } from '../utils/ratingUtils';
 import RatingHistoryChart, { SinglePlatformChart } from '../components/UserProfile/RatingHistoryChart';
@@ -7,8 +8,6 @@ import Tooltip from '../components/common/Tooltip';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
 import './UserProfilePage.css';
-
-const PLATFORMS = ['codeforces', 'atcoder', 'leetcode', 'codechef'];
 
 const PLATFORM_INFO = {
   codeforces: { name: 'Codeforces', color: '#1890ff', url: 'https://codeforces.com/profile/' },
