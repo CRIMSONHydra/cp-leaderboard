@@ -1,4 +1,4 @@
-import { safeBase64Encode } from '../utils/encoding.js';
+import { encodeBasicAuth } from '../utils/basicAuth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -37,42 +37,54 @@ export const api = {
     if (!username || !password) {
       return Promise.reject(new Error('Authentication required'));
     }
-    const authHeader = `Basic ${safeBase64Encode(`${username}:${password}`)}`;
-    return fetchJSON('/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader
-      },
-      body: JSON.stringify(userData)
-    });
+    try {
+      const authHeader = `Basic ${encodeBasicAuth(username, password)}`;
+      return fetchJSON('/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader
+        },
+        body: JSON.stringify(userData)
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
   },
 
   addAdminCredential: (credentialData, username, password) => {
     if (!username || !password) {
       return Promise.reject(new Error('Authentication required'));
     }
-    const authHeader = `Basic ${safeBase64Encode(`${username}:${password}`)}`;
-    return fetchJSON('/admin/credentials', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader
-      },
-      body: JSON.stringify(credentialData)
-    });
+    try {
+      const authHeader = `Basic ${encodeBasicAuth(username, password)}`;
+      return fetchJSON('/admin/credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader
+        },
+        body: JSON.stringify(credentialData)
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
   },
 
   verifyAuth: (username, password) => {
     if (!username || !password) {
       return Promise.reject(new Error('Username and password are required'));
     }
-    const authHeader = `Basic ${safeBase64Encode(`${username}:${password}`)}`;
-    return fetchJSON('/admin/verify', {
-      method: 'GET',
-      headers: {
-        'Authorization': authHeader
-      }
-    });
+    try {
+      const authHeader = `Basic ${encodeBasicAuth(username, password)}`;
+      return fetchJSON('/admin/verify', {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader
+        }
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 };
