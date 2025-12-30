@@ -4,7 +4,7 @@ const adminCredentialSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, // This already creates an index, no need for manual index
     trim: true
   },
   password: {
@@ -15,8 +15,7 @@ const adminCredentialSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Index for fast username lookups
-adminCredentialSchema.index({ username: 1 });
+// Note: No need for manual index on username since 'unique: true' already creates one
 
 export default mongoose.model('AdminCredential', adminCredentialSchema);
 

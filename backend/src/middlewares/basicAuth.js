@@ -5,6 +5,10 @@ const basicAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Basic ')) {
+      // Record failed attempt if rate limiter is attached
+      if (req.authRateLimiter) {
+        req.authRateLimiter.recordFailed();
+      }
       return res.status(401).json({
         success: false,
         error: 'Unauthorized - Basic authentication required'
@@ -17,6 +21,10 @@ const basicAuth = async (req, res, next) => {
     const [username, password] = credentials.split(':');
 
     if (!username || !password) {
+      // Record failed attempt if rate limiter is attached
+      if (req.authRateLimiter) {
+        req.authRateLimiter.recordFailed();
+      }
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials format'
@@ -27,16 +35,29 @@ const basicAuth = async (req, res, next) => {
     const adminCred = await AdminCredential.findOne({ username });
 
     if (!adminCred || adminCred.password !== password) {
+      // Record failed attempt if rate limiter is attached
+      if (req.authRateLimiter) {
+        req.authRateLimiter.recordFailed();
+      }
       return res.status(401).json({
         success: false,
         error: 'Invalid username or password'
       });
     }
 
+    // Clear failed attempts on successful authentication
+    if (req.authRateLimiter) {
+      req.authRateLimiter.clearFailed();
+    }
+
     // Attach user info to request
     req.user = { username: adminCred.username };
     next();
   } catch (error) {
+    // Record failed attempt on error
+    if (req.authRateLimiter) {
+      req.authRateLimiter.recordFailed();
+    }
     res.status(500).json({
       success: false,
       error: 'Authentication error: ' + error.message

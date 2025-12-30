@@ -32,6 +32,9 @@ export const api = {
     fetchJSON('/health'),
 
   addUser: (userData, username, password) => {
+    if (!username || !password) {
+      return Promise.reject(new Error('Authentication required'));
+    }
     const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
     return fetchJSON('/users', {
       method: 'POST',
@@ -44,6 +47,9 @@ export const api = {
   },
 
   addAdminCredential: (credentialData, username, password) => {
+    if (!username || !password) {
+      return Promise.reject(new Error('Authentication required'));
+    }
     const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
     return fetchJSON('/admin/credentials', {
       method: 'POST',
@@ -56,6 +62,9 @@ export const api = {
   },
 
   verifyAuth: (username, password) => {
+    if (!username || !password) {
+      return Promise.reject(new Error('Username and password are required'));
+    }
     const authHeader = `Basic ${btoa(`${username}:${password}`)}`;
     return fetchJSON('/admin/verify', {
       method: 'GET',

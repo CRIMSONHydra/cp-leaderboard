@@ -15,7 +15,8 @@ const updateLogSchema = new mongoose.Schema({
     error: String
   }]
 }, {
-  timestamps: true
+  timestamps: true,
+  suppressReservedKeysWarning: true // Suppress warning for 'errors' field
 });
 
 // Index for finding latest update

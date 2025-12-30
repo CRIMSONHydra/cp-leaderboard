@@ -16,7 +16,29 @@ Some endpoints require Basic Authentication. Include credentials in the `Authori
 Authorization: Basic <base64(username:password)>
 ```
 
-Admin credentials are stored in MongoDB. Default credentials: `navi:1234321`
+Admin credentials are stored in MongoDB.
+
+### Authentication Rate Limiting
+
+To prevent brute-force attacks, authentication endpoints have rate limiting based on failed attempts:
+
+- **Maximum failed attempts:** 5 attempts per IP/username combination
+- **Window duration:** 15 minutes
+- **Lockout duration:** 15 minutes after exceeding the threshold
+- **Tracking:** Failed attempts are tracked by both IP address and username
+
+After 5 failed authentication attempts within 15 minutes, the account will be temporarily locked for 15 minutes. Successful authentication clears the failed attempt counter.
+
+**Rate limit exceeded response (429):**
+```json
+{
+  "success": false,
+  "error": "Too many failed authentication attempts. Account temporarily locked.",
+  "retryAfter": 900
+}
+```
+
+The `retryAfter` field indicates the number of seconds until the lockout expires.
 
 ---
 
@@ -357,6 +379,15 @@ curl -X POST http://localhost:3000/api/users \
 }
 ```
 
+**429 Too Many Requests (Rate Limited):**
+```json
+{
+  "success": false,
+  "error": "Too many failed authentication attempts. Account temporarily locked.",
+  "retryAfter": 900
+}
+```
+
 **409 Conflict (User Already Exists):**
 ```json
 {
@@ -379,14 +410,29 @@ Manually trigger a full update of all users' ratings. Intended for cron jobs.
 ```
 x-cron-secret: <CRON_SECRET>
 ```
-OR
-**Query Parameters:**
-- `secret` (required): Cron secret matching `CRON_SECRET` environment variable
 
-**Example Request:**
+**Request Body (POST over TLS only):**
+For POST requests over HTTPS, the secret may also be provided in the request body:
+```json
+{
+  "secret": "<CRON_SECRET>"
+}
+```
+
+**Note:** Query parameters are not accepted for security reasons (secrets should not appear in URLs/logs).
+
+**Example Request (Header):**
 ```bash
-curl -X POST http://localhost:3000/api/update/trigger \
-  -H "x-cron-secret: your-secret-key"
+curl -X POST https://your-domain.com/api/update/trigger \
+  -H "x-cron-secret: your-secret-key" \
+  -H "Content-Type: application/json"
+```
+
+**Example Request (Body - HTTPS only):**
+```bash
+curl -X POST https://your-domain.com/api/update/trigger \
+  -H "Content-Type: application/json" \
+  -d '{"secret": "your-secret-key"}'
 ```
 
 **Response:**
@@ -404,7 +450,7 @@ curl -X POST http://localhost:3000/api/update/trigger \
 ```json
 {
   "success": false,
-  "error": "Unauthorized"
+  "error": "Unauthorized - Invalid or missing cron secret"
 }
 ```
 
@@ -544,11 +590,22 @@ curl -X GET http://localhost:3000/api/admin/verify \
 }
 ```
 
-**Error Response:**
+**Error Responses:**
+
+**401 Unauthorized:**
 ```json
 {
   "success": false,
   "error": "Invalid username or password"
+}
+```
+
+**429 Too Many Requests (Rate Limited):**
+```json
+{
+  "success": false,
+  "error": "Too many failed authentication attempts. Account temporarily locked.",
+  "retryAfter": 900
 }
 ```
 
@@ -648,14 +705,31 @@ curl -X POST http://localhost:3000/api/admin/credentials \
 
 ## Rate Limiting
 
+The API implements multiple rate limiting strategies:
+
+### General API Rate Limiting
 - **General API routes:** 100 requests per 15 minutes per IP
 - **Update endpoints:** 10 requests per hour per IP
+
+### Authentication Rate Limiting
+- **Failed authentication attempts:** 5 attempts per IP/username combination within 15 minutes
+- **Lockout duration:** 15 minutes after exceeding threshold
+- **Applies to:** All endpoints requiring Basic Authentication
 
 Rate limit exceeded response:
 ```json
 {
   "success": false,
   "error": "Too many requests, please try again later"
+}
+```
+
+Authentication rate limit exceeded response:
+```json
+{
+  "success": false,
+  "error": "Too many failed authentication attempts. Account temporarily locked.",
+  "retryAfter": 900
 }
 ```
 

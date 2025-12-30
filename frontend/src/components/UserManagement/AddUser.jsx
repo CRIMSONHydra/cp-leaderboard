@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import './AddUser.css';
 
 export default function AddUser() {
   const navigate = useNavigate();
-  // Get credentials from sessionStorage (set by ProtectedRoute)
-  const username = sessionStorage.getItem('admin_username') || '';
-  const password = sessionStorage.getItem('admin_password') || '';
+  const { getCredentials } = useAuth();
+  
+  // Get credentials from in-memory auth context (never from browser storage)
+  const credentials = getCredentials();
+  const username = credentials?.username || '';
+  const password = credentials?.password || '';
   
   const [formData, setFormData] = useState({
     name: '',

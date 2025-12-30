@@ -42,9 +42,25 @@ async function acquireUpdateLock() {
 const triggerUpdate = async (req, res) => {
   try {
     // Verify cron secret for security
-    const cronSecret = req.headers['x-cron-secret'] || req.query.secret;
-    if (cronSecret !== process.env.CRON_SECRET) {
-      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    // Accept secret from header (preferred) or request body (only for POST over TLS)
+    let cronSecret = req.headers['x-cron-secret'];
+    
+    // For POST requests over TLS, also allow secret in request body
+    // Check if request is secure (HTTPS or behind proxy with x-forwarded-proto)
+    const isSecure = req.secure || 
+                     req.protocol === 'https' || 
+                     req.headers['x-forwarded-proto'] === 'https';
+    
+    if (!cronSecret && isSecure && req.method === 'POST' && req.body?.secret) {
+      cronSecret = req.body.secret;
+    }
+    
+    // Validate secret exists and matches
+    if (!cronSecret || cronSecret !== process.env.CRON_SECRET) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Unauthorized - Invalid or missing cron secret' 
+      });
     }
 
     // Check for force flag to skip running check

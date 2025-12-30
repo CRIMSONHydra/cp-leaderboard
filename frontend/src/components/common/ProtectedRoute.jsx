@@ -1,30 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import './ProtectedRoute.css';
 
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const { login, logout, isAuthenticated, getCredentials } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Check sessionStorage for saved credentials
+  // Check if already authenticated (in-memory only)
   useEffect(() => {
-    const savedUsername = sessionStorage.getItem('admin_username');
-    const savedPassword = sessionStorage.getItem('admin_password');
-    
-    if (savedUsername && savedPassword) {
-      // Auto-verify saved credentials
-      verifyCredentials(savedUsername, savedPassword);
+    // Check in-memory credentials - no sessionStorage access
+    if (isAuthenticated()) {
+      setCheckingAuth(false);
     } else {
-      setIsAuthenticated(false);
+      setCheckingAuth(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated]);
 
   const verifyCredentials = async (user, pass) => {
     setLoading(true);
@@ -32,16 +30,12 @@ export default function ProtectedRoute({ children }) {
 
     try {
       await api.verifyAuth(user, pass);
-      setIsAuthenticated(true);
-      setUsername(user);
-      // Store credentials in sessionStorage (cleared on browser close)
-      sessionStorage.setItem('admin_username', user);
-      sessionStorage.setItem('admin_password', pass);
+      // Store credentials in memory only - never in browser storage
+      login(user, pass);
     } catch (err) {
-      setIsAuthenticated(false);
       setError(err.message || 'Invalid credentials');
-      sessionStorage.removeItem('admin_username');
-      sessionStorage.removeItem('admin_password');
+      // Clear any stale credentials
+      logout();
     } finally {
       setLoading(false);
     }
@@ -53,15 +47,14 @@ export default function ProtectedRoute({ children }) {
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
     setUsername('');
     setPassword('');
-    sessionStorage.removeItem('admin_username');
-    sessionStorage.removeItem('admin_password');
+    // Clear in-memory credentials only
+    logout();
   };
 
-  // Still checking saved credentials
-  if (isAuthenticated === null || loading) {
+  // Still checking authentication status
+  if (checkingAuth || loading) {
     return (
       <div className="protected-route-loading">
         <div className="loading-spinner">Loading...</div>
@@ -70,7 +63,7 @@ export default function ProtectedRoute({ children }) {
   }
 
   // Not authenticated - show login form
-  if (!isAuthenticated) {
+  if (!isAuthenticated()) {
     return (
       <div className="protected-route-container">
         <div className="auth-login-form">
@@ -116,6 +109,8 @@ export default function ProtectedRoute({ children }) {
 
   // Authenticated - render children with logout option
   const showBackButton = location.pathname === '/add-user';
+  const currentCredentials = getCredentials();
+  const displayUsername = currentCredentials?.username || '';
   
   return (
     <div className="protected-content">
@@ -130,7 +125,7 @@ export default function ProtectedRoute({ children }) {
           </button>
         )}
         <button onClick={handleLogout} className="btn-logout">
-          Logout ({username})
+          Logout ({displayUsername})
         </button>
       </div>
       {children}
