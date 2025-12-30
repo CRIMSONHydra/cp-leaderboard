@@ -317,10 +317,28 @@ export const authRateLimiter = async (req, res, next) => {
  * Get current failed attempts count (for monitoring/debugging)
  * @param {string} ip - Client IP
  * @param {string} username - Username
- * @returns {number} Current failed attempts count
+ * @returns {Promise<number>} Current failed attempts count
  */
-export function getFailedAttemptsCount(ip, username) {
+export async function getFailedAttemptsCount(ip, username) {
   const key = generateKey(ip, username);
+  const redis = getRedisClient();
+
+  // Try Redis first if enabled
+  if (redis && isRedisEnabled()) {
+    try {
+      const data = await redis.get(key);
+      if (data) {
+        const entry = JSON.parse(data);
+        return entry.count || 0;
+      }
+      return 0;
+    } catch (error) {
+      console.error('Redis error in getFailedAttemptsCount, falling back to in-memory:', error.message);
+      // Fall through to in-memory fallback
+    }
+  }
+
+  // Fallback to in-memory store
   const entry = failedAttemptsStore.get(key);
   return entry ? entry.count : 0;
 }
