@@ -9,7 +9,8 @@ import { updateLimiter } from '../middlewares/rateLimiter.js';
 const router = express.Router();
 
 router.post('/trigger', triggerUpdate);
-router.post('/user/:id', updateLimiter, updateUser);
+// Wrap updateLimiter in a function to reference it at request time, not import time
+router.post('/user/:id', (req, res, next) => updateLimiter(req, res, next), updateUser);
 router.get('/status', getUpdateStatus);
 
 export default router;

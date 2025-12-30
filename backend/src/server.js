@@ -54,7 +54,8 @@ app.use(cors({
 app.use(express.json());
 
 // Rate limiting for API routes
-app.use('/api', apiLimiter);
+// Wrap apiLimiter in a function to reference it at request time, not at import time
+app.use('/api', (req, res, next) => apiLimiter(req, res, next));
 
 // API Routes
 app.use('/api', routes);
