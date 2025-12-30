@@ -55,8 +55,19 @@ function cleanupExpiredEntries() {
   }
 }
 
-// Start cleanup interval
-setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
+// Start cleanup interval and store the interval ID for graceful shutdown
+let cleanupInterval = setInterval(cleanupExpiredEntries, CLEANUP_INTERVAL_MS);
+
+/**
+ * Stop the cleanup interval (for graceful shutdown)
+ */
+export function stopCleanup() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+    console.log('Auth rate limiter cleanup interval stopped');
+  }
+}
 
 /**
  * Check if authentication attempt should be blocked (in-memory version)

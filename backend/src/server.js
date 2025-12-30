@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import connectDB from './config/database.js';
 import { initRedis, closeRedis } from './config/redisStore.js';
+import { stopCleanup } from './middlewares/authRateLimiter.js';
 import routes from './routes/index.js';
 import errorHandler from './middlewares/errorHandler.js';
 import { apiLimiter, initRateLimitStore } from './middlewares/rateLimiter.js';
@@ -83,6 +84,7 @@ const server = app.listen(PORT, () => {
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
   server.close(async () => {
+    stopCleanup();
     await closeRedis();
     process.exit(0);
   });
@@ -91,6 +93,7 @@ process.on('SIGTERM', async () => {
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully...');
   server.close(async () => {
+    stopCleanup();
     await closeRedis();
     process.exit(0);
   });

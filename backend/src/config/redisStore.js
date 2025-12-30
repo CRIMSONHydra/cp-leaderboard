@@ -34,30 +34,42 @@ export async function initRedis() {
       lazyConnect: true
     });
 
-    await redisClient.connect();
-    
-    // Test connection
-    await redisClient.ping();
-    
-    isRedisAvailable = true;
-    console.log('Redis connected for rate limiting');
-
-    // Handle connection errors
+    // Register event handlers BEFORE connecting to catch events during connection
     redisClient.on('error', (err) => {
       console.error('Redis error:', err.message);
-      isRedisAvailable = false;
+      // Don't set isRedisAvailable = false here to avoid mid-operation flips
     });
 
     redisClient.on('reconnecting', () => {
       console.log('Redis reconnecting...');
+      isRedisAvailable = false; // Not ready during reconnect
     });
 
     redisClient.on('ready', () => {
-      isRedisAvailable = true;
+      isRedisAvailable = true; // Only set to true when ready
       console.log('Redis ready');
     });
 
-    return true;
+    redisClient.on('close', () => {
+      console.log('Redis connection closed');
+      isRedisAvailable = false; // Explicit disconnect
+    });
+
+    redisClient.on('end', () => {
+      console.log('Redis connection ended');
+      isRedisAvailable = false; // Explicit disconnect
+    });
+
+    // Connect to Redis
+    await redisClient.connect();
+    
+    // Test connection after ready
+    await redisClient.ping();
+    
+    console.log('Redis connected for rate limiting');
+
+    // Return the actual availability status (should be true after ready event)
+    return isRedisAvailable;
   } catch (error) {
     console.error('Failed to connect to Redis:', error.message);
     console.log('Falling back to in-memory store for rate limiting');
@@ -88,10 +100,13 @@ export function isRedisEnabled() {
 export async function closeRedis() {
   if (redisClient) {
     try {
+      isRedisAvailable = false; // Mark as unavailable before closing
       await redisClient.quit();
       console.log('Redis connection closed');
     } catch (error) {
       console.error('Error closing Redis connection:', error.message);
+    } finally {
+      redisClient = null;
     }
   }
 }
