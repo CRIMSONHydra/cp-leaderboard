@@ -3,8 +3,13 @@ import { createContext, useContext, useState, useCallback } from 'react';
 const AuthContext = createContext(null);
 
 /**
- * Authentication Context Provider
- * Stores credentials in memory only - never persists to browser storage
+ * Provides an authentication context that stores credentials in memory.
+ *
+ * Exposes `login(username, password)`, `logout()`, `isAuthenticated()`, and
+ * `getCredentials()` to descendant components via context.
+ *
+ * @param {Object} props
+ * @param {import('react').ReactNode} props.children - Elements rendered inside the provider.
  */
 export function AuthProvider({ children }) {
   const [credentials, setCredentials] = useState(null);
@@ -38,7 +43,12 @@ export function AuthProvider({ children }) {
  * Hook to use authentication context
  * @returns {object} Authentication context with login, logout, isAuthenticated, getCredentials
  */
-// eslint-disable-next-line react-refresh/only-export-components
+/**
+ * Accesses the authentication context provided by AuthProvider.
+ *
+ * @returns {{ login: (username: string, password: string) => void, logout: () => void, isAuthenticated: () => boolean, getCredentials: () => { username: string, password: string } | null }} The authentication context exposing methods to manage and read in-memory credentials.
+ * @throws {Error} If called outside of an AuthProvider.
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
@@ -46,4 +56,3 @@ export function useAuth() {
   }
   return context;
 }
-

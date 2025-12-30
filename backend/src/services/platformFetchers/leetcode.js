@@ -3,8 +3,9 @@ import axios from 'axios';
 const GRAPHQL_URL = 'https://leetcode.com/graphql/';
 
 /**
- * Get approximate rank tier from LeetCode rating
- * Based on community research of rating distributions
+ * Map a LeetCode numeric rating to an approximate textual rank tier.
+ * @param {number} rating - LeetCode contest rating.
+ * @returns {'Guardian' | 'Knight' | 'Top 5%' | 'Top 10%' | 'Top 20%' | 'Top 30%' | 'Beginner'} The rank tier corresponding to the given rating.
  */
 function getRankFromRating(rating) {
   if (rating >= 3000) return 'Guardian';
@@ -16,6 +17,19 @@ function getRankFromRating(rating) {
   return 'Beginner';
 }
 
+/**
+ * Fetches contest rating and rank information for a LeetCode user.
+ *
+ * @param {string} handle - LeetCode username to query.
+ * @returns {{rating: number|null, maxRating: number|null, rank: string|null, maxRank: number|null, lastUpdated: Date, error: string|null}}
+ * An object containing:
+ * - `rating`: rounded current contest rating, or `null` if unavailable.
+ * - `maxRating`: `null` (not provided by LeetCode).
+ * - `rank`: badge name (e.g., "Guardian") or a string like `"Top X%"`, `"Unrated"`, or `null` if user not found.
+ * - `maxRank`: `null` (not provided by LeetCode).
+ * - `lastUpdated`: timestamp when the data was fetched.
+ * - `error`: error message if the fetch failed or user was not found, otherwise `null`.
+ */
 async function fetchLeetCodeRating(handle) {
   const query = `
     query userContestRankingInfo($username: String!) {

@@ -16,6 +16,11 @@ import {
   releaseUpdateLock
 } from '../services/updateLock.js';
 
+/**
+ * Orchestrates the scheduled user rating update: ensures a single concurrent run via a global lock, performs the update, logs summary information, and exits the process.
+ *
+ * This function connects to MongoDB, detects and marks stale running updates as failed, attempts to acquire a global update lock, executes the user-rating update when locked, logs counts and errors, disconnects from the database, and terminates the process with an appropriate exit code (0 on success, 1 on failure).
+ */
 async function runUpdate() {
   const startTime = Date.now();
   console.log(`[${new Date().toISOString()}] Starting scheduled rating update...`);

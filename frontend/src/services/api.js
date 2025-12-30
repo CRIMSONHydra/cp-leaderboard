@@ -2,6 +2,14 @@ import { encodeBasicAuth } from '../utils/basicAuth.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+/**
+ * Fetches JSON from the API by issuing a request to API_BASE + url and returns the parsed response body.
+ *
+ * @param {string} url - Request path appended to API_BASE (should begin with '/').
+ * @param {RequestInit} [options] - Fetch options forwarded to `fetch`.
+ * @returns {any} The parsed JSON response body.
+ * @throws {Error} When the response has a non-OK status; message is taken from the response JSON `error` field if present, otherwise includes the HTTP status.
+ */
 async function fetchJSON(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, options);
   if (!response.ok) {

@@ -4,6 +4,14 @@ import './Tooltip.css';
 // Module-level counter for generating stable, unique tooltip IDs
 let tooltipIdCounter = 0;
 
+/**
+ * Render a focusable wrapper that shows an accessible, positioned tooltip for its children.
+ *
+ * @param {object} props
+ * @param {import('react').ReactNode} props.children - The trigger element(s) that the tooltip is attached to.
+ * @param {import('react').ReactNode} props.content - The content rendered inside the tooltip.
+ * @returns {JSX.Element} The wrapped children with an accessible, positioned tooltip element.
+ */
 export default function Tooltip({ children, content }) {
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -74,4 +82,3 @@ export default function Tooltip({ children, content }) {
     </div>
   );
 }
-

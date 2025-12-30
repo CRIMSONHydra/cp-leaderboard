@@ -14,8 +14,11 @@ let redisClient = null;
 let isRedisAvailable = false;
 
 /**
- * Initialize Redis connection if REDIS_URL is configured
- * @returns {Promise<boolean>} Whether Redis is available
+ * Initialize and test a Redis connection when REDIS_URL is configured.
+ *
+ * If REDIS_URL is not set or connection fails, the function leaves the system
+ * configured to use the in-memory rate limiter and returns `false`.
+ * @returns {Promise<boolean>} `true` if Redis is available for use after initialization, `false` otherwise.
  */
 export async function initRedis() {
   if (!process.env.REDIS_URL) {
@@ -79,23 +82,27 @@ export async function initRedis() {
 }
 
 /**
- * Get Redis client instance
- * @returns {object|null} Redis client or null if not available
+ * Get the active Redis client when Redis is enabled.
+ * @returns {object|null} The Redis client if available, or null otherwise.
  */
 export function getRedisClient() {
   return isRedisAvailable ? redisClient : null;
 }
 
 /**
- * Check if Redis is available
- * @returns {boolean}
+ * Determine whether Redis is currently available for use.
+ * @returns {boolean} `true` if Redis is available, `false` otherwise.
  */
 export function isRedisEnabled() {
   return isRedisAvailable;
 }
 
 /**
- * Close Redis connection gracefully
+ * Shut down the active Redis connection and clear internal Redis state.
+ *
+ * Marks Redis as unavailable and, if a client exists, attempts to quit the connection
+ * and clears the internal client reference. If no Redis client is present, the function
+ * is a no-op.
  */
 export async function closeRedis() {
   if (redisClient) {
@@ -112,9 +119,10 @@ export async function closeRedis() {
 }
 
 /**
- * Create a rate-limit-redis compatible store
- * Requires @express-rate-limit/redis package
- * @returns {object|undefined} Redis store or undefined for default in-memory
+ * Create a rate-limit store backed by Redis when a connected Redis client is available.
+ *
+ * Returns `undefined` to signal using the default in-memory store when Redis is not available or store creation fails.
+ * @returns {object|undefined} A `rate-limit-redis` compatible store instance, or `undefined` if Redis is unavailable or the store could not be created.
  */
 export async function createRateLimitStore() {
   if (!isRedisAvailable || !redisClient) {
@@ -140,4 +148,3 @@ export default {
   closeRedis,
   createRateLimitStore
 };
-

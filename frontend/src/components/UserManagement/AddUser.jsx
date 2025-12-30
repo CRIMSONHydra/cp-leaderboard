@@ -4,6 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import './AddUser.css';
 
+/**
+ * Render a form to add a user to the leaderboard.
+ *
+ * Collects a required user name and optional platform handles (Codeforces, AtCoder, CodeChef, LeetCode),
+ * submits trimmed data to the API using in-memory credentials, and displays loading, error, and success states.
+ *
+ * @returns {JSX.Element} The AddUser component UI.
+ */
 export default function AddUser() {
   const navigate = useNavigate();
   const { getCredentials } = useAuth();
@@ -206,4 +214,3 @@ export default function AddUser() {
     </div>
   );
 }
-

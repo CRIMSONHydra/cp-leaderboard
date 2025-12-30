@@ -4,6 +4,18 @@ import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import './ProtectedRoute.css';
 
+/**
+ * Render a protected route UI that enforces an admin in-memory authentication flow.
+ *
+ * Shows a loading state while checking or verifying credentials, displays a login form
+ * when the user is not authenticated, and renders the provided children with a header
+ * and logout control when authenticated. Credential verification is performed via the
+ * API and credentials are kept in memory only (never persisted to browser storage).
+ *
+ * @param {{ children: import('react').ReactNode }} props - Component props.
+ * @param {import('react').ReactNode} props.children - Content to render when authenticated.
+ * @returns {JSX.Element} The authentication UI or the protected content depending on auth state.
+ */
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -132,4 +144,3 @@ export default function ProtectedRoute({ children }) {
     </div>
   );
 }
-

@@ -25,6 +25,11 @@ const PLATFORM_NAMES = {
   codechef: 'CodeChef'
 };
 
+/**
+ * Formats a date as a short month and year (e.g., "Jan 2023") using the en-US locale.
+ * @param {string|number|Date} dateString - Value accepted by the Date constructor (ISO string, timestamp, or Date).
+ * @returns {string} The formatted month and year (e.g., "Jan 2023").
+ */
 function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
@@ -33,7 +38,20 @@ function formatDate(dateString) {
   });
 }
 
-// Invisible tooltip that captures data and position for external rendering
+/**
+ * Capture tooltip data and cursor side for external rendering.
+ *
+ * When active and a payload is present, asynchronously calls `onUpdate` with an object
+ * containing the current `label`, the tooltip `payload`, and `isRightHalf` (true when the
+ * cursor is in the right half of the chart area). The component renders nothing.
+ *
+ * @param {boolean} active - Whether the chart tooltip is active.
+ * @param {Array} payload - Tooltip payload array provided by the chart library.
+ * @param {string} label - The x-axis label (typically a date) for the hovered point.
+ * @param {{x: number}} coordinate - Cursor coordinate object; `x` is used to determine side.
+ * @param {{width?: number}} viewBox - Chart viewBox object; `width` is used to determine chart midpoint.
+ * @param {(data: {label: string, payload: Array, isRightHalf: boolean} | null) => void} onUpdate - Callback invoked with the captured tooltip data or `null`.
+ */
 function DataCaptureTooltip({ active, payload, label, coordinate, viewBox, onUpdate }) {
   if (active && payload && payload.length > 0) {
     const chartWidth = viewBox?.width || 500;
@@ -47,6 +65,13 @@ function DataCaptureTooltip({ active, payload, label, coordinate, viewBox, onUpd
   return null; // Render nothing - we display tooltip externally
 }
 
+/**
+ * Render a combined multi-platform rating history chart with an external, position-aware tooltip.
+ *
+ * @param {Object} props.history - Mapping of platform keys to their history payloads; each payload should include `success` (boolean) and `data` (array of entries with at least `date` and `rating`).
+ * @param {string[]} props.platforms - Ordered list of platform keys to include and display in the chart.
+ * @returns {JSX.Element} A React element containing the merged line chart, external tooltip UI, and empty-state message when no data is available.
+ */
 export default function RatingHistoryChart({ history, platforms }) {
   const [tooltipData, setTooltipData] = useState(null);
   const lastLabelRef = useRef(null);
@@ -170,7 +195,15 @@ export default function RatingHistoryChart({ history, platforms }) {
   );
 }
 
-// Tooltip content for individual charts
+/**
+ * Render tooltip content for a single-platform chart when a data point is active.
+ *
+ * @param {Object} props
+ * @param {boolean} props.active - Whether the tooltip is active/visible.
+ * @param {Array} props.payload - Chart tooltip payload; expects an array where payload[0].payload is an object containing `date`, `contestName`, `rating`, `change`, and optional `rank`.
+ * @param {string} props.platform - Platform key used to determine the rating text color via PLATFORM_COLORS.
+ * @returns {JSX.Element|null} A tooltip element showing date, contest name, rating (with change) and optional rank when active and payload is present; otherwise `null`.
+ */
 function SingleChartTooltipContent({ active, payload, platform }) {
   if (!active || !payload || !payload.length) return null;
   
@@ -193,7 +226,13 @@ function SingleChartTooltipContent({ active, payload, platform }) {
   );
 }
 
-// Hidden tooltip that captures data but renders nothing
+/**
+ * Captures tooltip payload data and forwards it to a provided callback while rendering no UI.
+ * @param {Object} props
+ * @param {boolean} props.active - Whether the tooltip is currently active/visible.
+ * @param {Array} props.payload - Tooltip payload array from the chart; the component uses payload[0].payload when present.
+ * @param {(data: Object|null) => void} props.onDataChange - Callback invoked with the captured data object when available, or `null` when there is no payload.
+ */
 function HiddenTooltip({ active, payload, onDataChange }) {
   if (active && payload && payload.length > 0) {
     const data = payload[0].payload;
@@ -205,6 +244,15 @@ function HiddenTooltip({ active, payload, onDataChange }) {
   return null;
 }
 
+/**
+ * Render a single-platform rating history chart with an external tooltip area beneath the chart.
+ *
+ * @param {Object} props
+ * @param {Object} props.history - History object for the platform. Expected shape: { success: boolean, data: Array<Object> }.
+ *   Each data entry should include: { date: string | number, rating: number, contestName?: string, change?: number, rank?: number }.
+ *   If `history.success` is false or `history.data` is empty, the component renders a "No history available" message.
+ * @param {string} props.platform - Platform key used to select display name and color (matches keys in PLATFORM_NAMES / PLATFORM_COLORS).
+ * @returns {JSX.Element} A React element containing the line chart and an external tooltip area showing the currently hovered data point.
 export function SinglePlatformChart({ history, platform }) {
   const [tooltipInfo, setTooltipInfo] = useState(null);
   const lastDataRef = useRef(null);

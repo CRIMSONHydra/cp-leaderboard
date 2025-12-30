@@ -54,10 +54,10 @@ const NORMALIZATION_TIERS = {
 };
 
 /**
- * Normalize a rating to 0-100 scale using piecewise linear interpolation
- * @param {string} platform - The platform name
- * @param {number} rating - The raw rating
- * @returns {number} Normalized rating (0-100)
+ * Convert a platform-specific numeric rating into a 0–100 normalized score using defined tiers.
+ * @param {string} platform - Platform key corresponding to entries in NORMALIZATION_TIERS.
+ * @param {number} rating - The raw numeric rating for the platform.
+ * @returns {number|null} Normalized rating between 0 and 100. Returns `null` if the platform is unknown or `rating` is null/undefined.
  */
 function normalizeRating(platform, rating) {
   const tiers = NORMALIZATION_TIERS[platform];
@@ -92,9 +92,10 @@ function normalizeRating(platform, rating) {
 }
 
 /**
- * Calculate aggregate score as average of normalized ratings
- * @param {object} ratings - Platform ratings object
- * @returns {number} Aggregate score (0-100)
+ * Compute an overall score by averaging available per-platform normalized ratings.
+ * Ignores platforms that have no rating or whose rating is marked with an error.
+ * @param {object} ratings - Map of platform keys to rating objects (each may contain `rating`, `maxRating`, `maxRank`, `error`, etc.).
+ * @returns {number} Rounded average score on a 0–100 scale, or `0` if no valid platform ratings are present.
  */
 function calculateAggregateScore(ratings) {
   let totalNormalized = 0;
@@ -114,6 +115,15 @@ function calculateAggregateScore(ratings) {
   return platformCount > 0 ? Math.round(totalNormalized / platformCount) : 0;
 }
 
+/**
+ * Update a single user's platform ratings, preserve per-platform max values, compute an aggregate score, and persist the changes.
+ *
+ * Updates the user's per-platform rating entries (including preserving or deriving `maxRating`/`maxRank` where appropriate),
+ * recalculates `aggregateScore`, sets `lastFullUpdate`, and saves all changes to the database.
+ *
+ * @param {Object} user - A user document containing at minimum `_id`, `handles` (per-platform handles), and optional `ratings`.
+ * @returns {Array<Object>} An array of error records encountered during the update; each record contains `{ userId, platform, error }`.
+ */
 async function updateSingleUser(user) {
   const updates = {};
   const errors = [];
@@ -182,9 +192,17 @@ async function updateSingleUser(user) {
 }
 
 /**
- * Run the update using a pre-created lock document
- * @param {object} lock - The lock document (UpdateLog with LOCK_ID)
- * @param {function} releaseLock - Function to release the lock (status, updates)
+ * Perform a full ratings update for all active users while tracking progress via a pre-created lock.
+ *
+ * Iterates all active users, runs per-user updates, accumulates per-user errors, periodically persists progress
+ * to the provided lock document, and releases the lock with a final status on completion or failure.
+ * @param {object} lock - The pre-created UpdateLog document used as a lock (must contain _id and LOCK_ID).
+ * @param {function(string, object): Promise<void>} releaseLock - Function to release the lock; called with a status
+ *   of 'completed' or 'failed' and an updates object describing usersUpdated and errors.
+ * @returns {{success: true, usersUpdated: number, errors: Array<object>}} An object summarizing the run:
+ *   the number of users updated and a list of collected error entries.
+ * @throws {Error} Re-throws any unexpected error that aborts the overall update after ensuring the lock is released with
+ *   a 'failed' status and error details.
  */
 async function updateAllUsers(lock, releaseLock) {
   const allErrors = [];

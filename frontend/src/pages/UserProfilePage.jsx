@@ -16,6 +16,16 @@ const PLATFORM_INFO = {
   codechef: { name: 'CodeChef', color: '#722ed1', url: 'https://www.codechef.com/users/' }
 };
 
+/**
+ * Display a user's profile with platform ratings, aggregate score, and rating history.
+ *
+ * Fetches the user's handles, ratings, and history based on the route `id` and renders:
+ * a back button, profile header with an aggregate score and tooltip, a platform ratings table
+ * (handle links and color-coded ratings/ranks), and combined plus per-platform history charts
+ * when history is available. Shows a loading state, error message, or "User not found" when appropriate.
+ *
+ * @returns {JSX.Element} The user profile page element.
+ */
 export default function UserProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -227,4 +237,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-

@@ -14,6 +14,12 @@ const PLATFORM_LABELS = {
   aggregate: 'Score'
 };
 
+/**
+ * Render the sortable leaderboard UI with per-platform and aggregate columns.
+ *
+ * Renders a Loading component while data is being fetched, an ErrorMessage with retry on error, and an empty-state message when no users exist. When data is available, renders a table showing rank, name, platform-specific ratings (one column per PLATFORMS entry), and a normalized aggregate score column with a tooltip; header buttons allow sorting by name, each platform, or aggregate.
+ * @returns {JSX.Element} The leaderboard view: either a loading indicator, an error message, an empty-state message, or the populated sortable leaderboard table.
+ */
 export default function LeaderboardTable() {
   const { data, loading, error, sortBy, sortOrder, handleSort, refetch } = useLeaderboard();
 

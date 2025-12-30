@@ -2,8 +2,10 @@ import rateLimit from 'express-rate-limit';
 import { getRedisClient, isRedisEnabled } from '../config/redisStore.js';
 
 /**
- * Create a Redis store for rate limiting if Redis is available
- * @returns {object|undefined} Store configuration or undefined for in-memory
+ * Provide a Redis-backed store for express-rate-limit when Redis is enabled and available.
+ *
+ * Returns a Redis-backed rate-limit store if Redis is enabled, a Redis client is available, and the Redis store module can be loaded; returns `undefined` otherwise to allow using the in-memory store.
+ * @returns {object|undefined} A Redis-backed rate-limit store object when available, `undefined` if Redis is disabled, no client is present, or the Redis store cannot be initialized.
  */
 async function createStore() {
   if (!isRedisEnabled()) {
@@ -32,8 +34,13 @@ export let apiLimiter;
 export let updateLimiter;
 
 /**
- * Initialize rate limit store and create rate limiters
- * MUST be called after Redis initialization to properly configure the store
+ * Initialize the rate limit store and create the apiLimiter and updateLimiter middlewares.
+ *
+ * Must be called after Redis initialization so the limiter store can be configured.
+ * Creates two express-rate-limit middlewares:
+ * - `apiLimiter`: 15-minute window, 100 requests per IP.
+ * - `updateLimiter`: 1-hour window, 10 updates per IP.
+ * Logs whether a Redis-backed store or the in-memory store is used.
  */
 export async function initRateLimitStore() {
   const rateLimitStore = await createStore();

@@ -2,9 +2,9 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 /**
- * Fetch rating history from Codeforces API
- * @param {string} handle - Codeforces handle
- * @returns {Promise<Array>} Array of rating history entries
+ * Retrieve a user's Codeforces contest rating history.
+ * @param {string} handle - Codeforces username.
+ * @returns {{success: boolean, data?: Array<{date: string, rating: number, contestName: string, rank: number, change: number}>, error?: string}} Object with `success` flag and either `data` (array of history entries) or `error` message.
  */
 async function fetchCodeforcesHistory(handle) {
   try {
@@ -32,8 +32,13 @@ async function fetchCodeforcesHistory(handle) {
 }
 
 /**
- * Clean up AtCoder contest name by removing Japanese text
- * AtCoder often provides names like "日本語名 / English Name"
+ * Selects an English-friendly contest title from an AtCoder contest name.
+ *
+ * If the input contains a " / " separator, chooses the side with more ASCII characters
+ * (typically the English name). Otherwise removes non-ASCII characters while preserving
+ * alphanumeric characters, spaces, and common punctuation.
+ * @param {string} name - The raw contest name from AtCoder, possibly containing Japanese text.
+ * @returns {string} The cleaned contest name; returns `'Contest'` when `name` is falsy, or the original `name` if cleaning removes all characters.
  */
 function cleanAtCoderContestName(name) {
   if (!name) return 'Contest';
@@ -56,9 +61,9 @@ function cleanAtCoderContestName(name) {
 }
 
 /**
- * Fetch rating history from AtCoder API
- * @param {string} handle - AtCoder handle
- * @returns {Promise<Array>} Array of rating history entries
+ * Retrieve an AtCoder user's contest rating history.
+ * @param {string} handle - AtCoder username.
+ * @returns {{success: boolean, data?: Array<{date: string, rating: number, contestName: string, rank: number, change: number, performance?: number}>, error?: string}} Object with a `success` flag; on success `data` is an array of normalized history entries, on failure `error` contains a message (`'User not found'` if the server returns 404).
  */
 async function fetchAtCoderHistory(handle) {
   try {
@@ -86,9 +91,9 @@ async function fetchAtCoderHistory(handle) {
 }
 
 /**
- * Fetch rating history from LeetCode GraphQL API
- * @param {string} handle - LeetCode username
- * @returns {Promise<Array>} Array of rating history entries
+ * Fetches a user's LeetCode contest rating history and normalizes it into standardized entries.
+ * @param {string} handle - LeetCode username.
+ * @returns {{ success: true, data: Array<{ date: string, rating: number, contestName: string, rank: number, change: number }> } | { success: false, error: string }}
  */
 async function fetchLeetCodeHistory(handle) {
   try {
@@ -155,9 +160,9 @@ async function fetchLeetCodeHistory(handle) {
 }
 
 /**
- * Fetch rating history from CodeChef by scraping profile page
- * @param {string} handle - CodeChef handle
- * @returns {Promise<Array>} Array of rating history entries
+ * Retrieve a CodeChef user's contest rating history by scraping their profile page.
+ * @param {string} handle - CodeChef username to fetch history for.
+ * @returns {{success: boolean, data?: Array<{date: string, rating: number, contestName: string, rank: number|null, change: number}>, error?: string}} Result object containing success flag, parsed rating entries when present, or an error message.
  */
 async function fetchCodeChefHistory(handle) {
   try {
@@ -246,9 +251,10 @@ async function fetchCodeChefHistory(handle) {
 }
 
 /**
- * Fetch rating history for all platforms for a user
- * @param {object} handles - Object with platform handles
- * @returns {Promise<object>} Object with history for each platform
+ * Fetch rating histories across supported platforms for the provided user handles.
+ *
+ * @param {{codeforces?: string, atcoder?: string, leetcode?: string, codechef?: string}} handles - Object with optional platform usernames; supported keys: `codeforces`, `atcoder`, `leetcode`, `codechef`.
+ * @returns {{codeforces?: {success: boolean, data?: Array, error?: string}, atcoder?: {success: boolean, data?: Array, error?: string}, leetcode?: {success: boolean, data?: Array, error?: string}, codechef?: {success: boolean, data?: Array, error?: string}}} An object mapping each requested platform to its fetch result object (`success`, optional `data` array of history entries, or `error` message).
  */
 async function fetchAllHistory(handles) {
   const results = {};
@@ -299,4 +305,3 @@ export {
   fetchCodeChefHistory,
   fetchAllHistory
 };
-

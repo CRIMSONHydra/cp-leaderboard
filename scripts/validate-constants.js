@@ -29,10 +29,23 @@ const colors = {
 
 let hasErrors = false;
 
+/**
+ * Print a message to stdout wrapped with the specified ANSI color sequence.
+ * @param {string} message - The text to print.
+ * @param {string} [color='reset'] - The color key to apply; one of `green`, `red`, `yellow`, or `reset`.
+ */
 function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
+/**
+ * Validate a single file to ensure platform constants are imported from shared/constants.js when required.
+ *
+ * Reads the file at the given relative path and checks for a local `PLATFORMS` definition and for an import from `shared/constants.js`. When `shouldImportFromShared` is true, logs a success message if the file imports from shared constants; otherwise logs errors and marks the module-level `hasErrors` flag when a local definition is present or the shared import is missing.
+ *
+ * @param {string} filePath - Path to the target file, relative to the repository root.
+ * @param {boolean} shouldImportFromShared - If true, enforce that the file imports `PLATFORMS` from `shared/constants.js` rather than defining it locally.
+ */
 function checkFile(filePath, shouldImportFromShared) {
   try {
     const content = readFileSync(join(rootDir, filePath), 'utf-8');
@@ -112,4 +125,3 @@ if (hasErrors) {
   log('✅ All platform constants are consistent!', 'green');
   process.exit(0);
 }
-

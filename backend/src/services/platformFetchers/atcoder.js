@@ -1,5 +1,10 @@
 import axios from 'axios';
 
+/**
+ * Map a numeric rating to its color-based rank.
+ *
+ * @returns {string} The rank corresponding to the rating: 'Red' (>= 2800), 'Orange' (>= 2400), 'Yellow' (>= 2000), 'Blue' (>= 1600), 'Cyan' (>= 1200), 'Green' (>= 800), 'Brown' (>= 400), or 'Gray' otherwise.
+ */
 function getRankFromRating(rating) {
   if (rating >= 2800) return 'Red';
   if (rating >= 2400) return 'Orange';
@@ -11,6 +16,17 @@ function getRankFromRating(rating) {
   return 'Gray';
 }
 
+/**
+ * Fetches an AtCoder user's rating history and derives the current rating, maximum rating, and corresponding color ranks.
+ * @param {string} handle - AtCoder username (handle) to query.
+ * @returns {{rating: number|null, maxRating: number|null, rank: string|null, maxRank: string|null, lastUpdated: Date, error: string|null}} An object containing:
+ *  - `rating`: the user's latest `NewRating`, or `null` if unavailable;
+ *  - `maxRating`: the highest `NewRating` seen in history, or `null` if unavailable;
+ *  - `rank`: the color-based rank for the latest rating, `'Unrated'` if the user has no rated contests, or `null` if the user was not found or an error occurred;
+ *  - `maxRank`: the color-based rank for `maxRating`, or `null` if unavailable;
+ *  - `lastUpdated`: the timestamp when the result was produced;
+ *  - `error`: `null` on success, `'User not found'` if the handle does not exist, or an error message for other failures.
+ */
 async function fetchAtCoderRating(handle) {
   try {
     const response = await axios.get(

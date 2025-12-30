@@ -5,6 +5,12 @@ const RATE_LIMIT_DELAY = 250; // 4 req/sec to be safe (limit is 5/sec)
 
 let lastRequestTime = 0;
 
+/**
+ * Fetch Codeforces user rating information for the given handle while respecting the module's rate limit.
+ *
+ * @param {string} handle - Codeforces username (handle) to look up.
+ * @returns {{rating: number|null, maxRating: number|null, rank: string|null, maxRank: string|null, lastUpdated: Date, error: string|null}} An object containing the user's current rating fields (or `null` if unavailable), a `lastUpdated` timestamp, and an `error` message when lookup fails or an error occurs.
+ */
 async function fetchCodeforcesRating(handle) {
   // Rate limiting
   const now = Date.now();

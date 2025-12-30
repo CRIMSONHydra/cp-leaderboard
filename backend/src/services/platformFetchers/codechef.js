@@ -8,7 +8,18 @@ const CODECHEF_API = 'https://codechef-api.vercel.app/handle';
 const CODECHEF_PROFILE_URL = 'https://www.codechef.com/users';
 
 /**
- * Try fetching from third-party API
+ * Fetches CodeChef rating data for a user via the configured third-party API.
+ *
+ * Attempts to obtain the user's current rating, highest rating, and star-based rank,
+ * and returns a normalized result indicating success or an error message.
+ *
+ * @param {string} handle - CodeChef username to query.
+ * @returns {Object} Result object.
+ * @returns {boolean} returns.success - `true` if rating data was obtained, `false` otherwise.
+ * @returns {(number|null)} [returns.rating] - Current numeric rating, or `null` if unavailable.
+ * @returns {(number|null)} [returns.maxRating] - Highest numeric rating, or `null` if unavailable.
+ * @returns {(string|null)} [returns.rank] - Star-based rank (e.g., `"3★"`), or `null` if unavailable.
+ * @returns {(string|undefined)} [returns.error] - Error message when `success` is `false`.
  */
 async function tryApiMethod(handle) {
   try {
@@ -48,7 +59,10 @@ async function tryApiMethod(handle) {
 }
 
 /**
- * Fall back to web scraping the CodeChef profile page
+ * Scrapes a CodeChef user's profile page to extract the current rating, highest rating, and star rank.
+ *
+ * @param {string} handle - CodeChef username to fetch data for.
+ * @returns {{success: boolean, rating: number|null, maxRating: number|null, rank: string|null, error?: string}} An object with the scrape result: when `success` is true, `rating`, `maxRating`, and `rank` reflect the parsed values (null if unavailable); when `success` is false, `error` contains a descriptive message.
  */
 async function scrapeCodeChefProfile(handle) {
   try {
@@ -201,7 +215,9 @@ async function scrapeCodeChefProfile(handle) {
 }
 
 /**
- * Get star rating from CodeChef rating
+ * Map a numeric CodeChef rating to its star-based rank.
+ * @param {number} rating - CodeChef rating value.
+ * @returns {string} Star rank string corresponding to the rating (e.g., '1★' through '7★').
  */
 function getStarsFromRating(rating) {
   if (rating >= 2500) return '7★';
@@ -214,7 +230,15 @@ function getStarsFromRating(rating) {
 }
 
 /**
- * Main function: Try API first, fall back to web scraping
+ * Fetch CodeChef rating for a user using a third-party API and fall back to scraping the profile page if the API fails.
+ * @param {string} handle - CodeChef username.
+ * @returns {{rating: number|null, maxRating: number|null, rank: string|null, maxRank: string|null, lastUpdated: Date, error: string|null}} An object containing:
+ *  - `rating`: current numeric rating, or `null` if unavailable,
+ *  - `maxRating`: highest numeric rating, or `null` if unavailable,
+ *  - `rank`: star-based rank string (e.g., `'3★'`) or `'Unrated'`, or `null` if unknown,
+ *  - `maxRank`: star-based rank corresponding to `maxRating`, or `null` if `maxRating` is unavailable,
+ *  - `lastUpdated`: timestamp when the result was produced,
+ *  - `error`: error message when both methods fail, otherwise `null`.
  */
 async function fetchCodeChefRating(handle) {
   // Try third-party API first
