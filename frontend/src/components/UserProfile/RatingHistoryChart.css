@@ -1,0 +1,156 @@
+.rating-chart-container {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+/* Combined chart tooltip - fixed position left or right */
+.combined-tooltip {
+  position: absolute;
+  top: 60px;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.combined-tooltip.tooltip-left {
+  left: 70px;
+}
+
+.combined-tooltip.tooltip-right {
+  right: 50px;
+}
+
+.chart-empty,
+.single-chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+  font-style: italic;
+  background: #1a1a2e;
+  border-radius: 8px;
+}
+
+.chart-tooltip {
+  background: rgba(15, 15, 26, 0.95);
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  min-width: 120px;
+}
+
+.chart-tooltip-compact {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.chart-tooltip-compact .tooltip-date {
+  margin-bottom: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.tooltip-date {
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.tooltip-contest {
+  color: #aaa;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-rank {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.positive {
+  color: #52c41a;
+}
+
+.negative {
+  color: #ff4d4f;
+}
+
+.single-chart-container {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+}
+
+.single-chart-container h4 {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+}
+
+/* External tooltip below individual charts */
+.external-tooltip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 36px;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #333;
+  border-radius: 6px;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  transition: opacity 0.15s ease;
+}
+
+.external-tooltip.visible {
+  opacity: 1;
+}
+
+.ext-hint {
+  color: #666;
+  font-style: italic;
+}
+
+.ext-date {
+  color: #fff;
+  font-weight: 600;
+}
+
+.ext-contest {
+  color: #999;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ext-rating {
+  font-weight: 600;
+}
+
+.ext-rank {
+  color: #888;
+}
+
+/* Recharts overrides */
+.recharts-legend-item-text {
+  color: #ccc !important;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #333;
+}
+
+/* Ensure tooltip wrapper doesn't interfere */
+.recharts-tooltip-wrapper {
+  z-index: 100 !important;
+}

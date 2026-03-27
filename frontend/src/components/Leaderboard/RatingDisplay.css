@@ -1,0 +1,32 @@
+.rating-link {
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.2s;
+}
+
+.rating-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.rating-link.unrated {
+  color: #999;
+  font-weight: 400;
+}
+
+.rating-value {
+  font-size: 1rem;
+}
+
+.rating-rank {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.no-handle {
+  color: #ccc;
+}

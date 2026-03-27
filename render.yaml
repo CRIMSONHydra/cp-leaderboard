@@ -1,0 +1,37 @@
+# Render Blueprint for CP Leaderboard
+# Deploy: https://render.com/docs/blueprint-spec
+
+services:
+  # Web Service - serves both API and frontend
+  - type: web
+    name: cp-leaderboard
+    runtime: node
+    buildCommand: |
+      cd frontend && pnpm install --frozen-lockfile && pnpm build &&
+      mkdir -p ../backend/public &&
+      cp -r dist/* ../backend/public/ &&
+      cd ../backend && pnpm install --frozen-lockfile
+    startCommand: cd backend && node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false  # Set manually in Render dashboard
+      - key: CRON_SECRET
+        generateValue: true
+    autoDeploy: true
+    healthCheckPath: /api/health
+
+  # Cron Job - updates ratings every 12 hours
+  - type: cron
+    name: cp-leaderboard-updater
+    runtime: node
+    schedule: "0 */12 * * *"  # Every 12 hours
+    buildCommand: cd backend && pnpm install --frozen-lockfile
+    startCommand: cd backend && node src/scripts/cronUpdate.js
+    envVars:
+      - key: MONGODB_URI
+        fromService:
+          type: web
+          name: cp-leaderboard
+          envVarKey: MONGODB_URI

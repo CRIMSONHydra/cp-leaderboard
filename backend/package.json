@@ -1,18 +1,43 @@
 {
-  "name": "backend",
+  "name": "cp-leaderboard-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend for CP Leaderboard - tracks competitive programming ratings",
+  "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/scripts/seed.js",
+    "update": "node src/scripts/cronUpdate.js",
+    "validate:constants": "node ../scripts/validate-constants.js"
   },
-  "keywords": [],
+  "keywords": [
+    "competitive-programming",
+    "leaderboard",
+    "codeforces",
+    "atcoder",
+    "leetcode",
+    "codechef"
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "cheerio": "^1.1.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "ioredis": "^5.8.2",
+    "mongoose": "^9.0.1",
+    "rate-limit-redis": "^4.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -1,0 +1,35 @@
+{
+  "name": "cp-leaderboard",
+  "version": "1.0.0",
+  "description": "CP Leaderboard - Competitive Programming Rating Tracker",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter cp-leaderboard-backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build && pnpm --filter cp-leaderboard-backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter cp-leaderboard-backend build",
+    "lint": "pnpm --filter frontend lint",
+    "validate:constants": "node scripts/validate-constants.js",
+    "pretest": "pnpm run validate:constants",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
+  },
+  "keywords": [
+    "competitive-programming",
+    "leaderboard",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.24.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bcrypt"
+    ],
+    "overrides": {
+      "vite": "npm:rolldown-vite@7.2.5"
+    }
+  }
+}
+
