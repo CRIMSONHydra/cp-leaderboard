@@ -16,6 +16,11 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
+.sort-button:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
 .sort-button.active {
   color: #3498db;
 }

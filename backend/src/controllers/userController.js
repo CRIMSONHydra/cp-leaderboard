@@ -14,7 +14,9 @@ const createUser = async (req, res) => {
     }
 
     // Check if user with same name already exists
-    const existingUser = await User.findOne({ name: name.trim() });
+    const existingUser = await User.findOne({
+      name: { $regex: new RegExp(`^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+    });
     if (existingUser) {
       return res.status(409).json({
         success: false,

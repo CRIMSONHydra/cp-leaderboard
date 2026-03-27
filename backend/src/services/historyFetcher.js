@@ -204,7 +204,7 @@ async function fetchCodeChefHistory(handle) {
           }));
           break;
         } catch (e) {
-          // Continue searching
+          console.warn(`[CodeChef] JSON parse failed for all_rating (handle: ${handle}): ${e.message}`);
         }
       }
 
@@ -222,9 +222,13 @@ async function fetchCodeChefHistory(handle) {
           }));
           break;
         } catch (e) {
-          // Continue searching
+          console.warn(`[CodeChef] JSON parse failed for rating_data (handle: ${handle}): ${e.message}`);
         }
       }
+    }
+
+    if (ratingData.length === 0 && scriptTags.length > 0) {
+      console.warn(`[CodeChef] No rating data found for handle "${handle}" after checking ${scriptTags.length} script tags`);
     }
 
     // Calculate changes

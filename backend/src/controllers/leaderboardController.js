@@ -72,6 +72,9 @@ const getUserDetails = async (req, res) => {
     }
     res.json({ success: true, data: user });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ success: false, error: 'Invalid user ID format' });
+    }
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -145,6 +148,9 @@ const getUserHistory = async (req, res) => {
       }
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ success: false, error: 'Invalid user ID format' });
+    }
     res.status(500).json({ success: false, error: error.message });
   }
 };

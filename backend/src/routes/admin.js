@@ -1,9 +1,12 @@
 import express from 'express';
 import basicAuth from '../middlewares/basicAuth.js';
 import { authRateLimiter } from '../middlewares/authRateLimiter.js';
-import { createCredential, verifyAuth } from '../controllers/adminController.js';
+import { bootstrapCredential, createCredential, verifyAuth } from '../controllers/adminController.js';
 
 const router = express.Router();
+
+// POST /api/admin/bootstrap - Create first admin (only works when no admins exist)
+router.post('/bootstrap', bootstrapCredential);
 
 // GET /api/admin/verify - Verify authentication (protected)
 router.get('/verify', authRateLimiter, basicAuth, verifyAuth);

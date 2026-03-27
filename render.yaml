@@ -7,10 +7,10 @@ services:
     name: cp-leaderboard
     runtime: node
     buildCommand: |
-      cd frontend && pnpm install && pnpm build &&
+      cd frontend && pnpm install --frozen-lockfile && pnpm build &&
       mkdir -p ../backend/public &&
       cp -r dist/* ../backend/public/ &&
-      cd ../backend && pnpm install
+      cd ../backend && pnpm install --frozen-lockfile
     startCommand: cd backend && node src/server.js
     envVars:
       - key: NODE_ENV
@@ -27,7 +27,7 @@ services:
     name: cp-leaderboard-updater
     runtime: node
     schedule: "0 */12 * * *"  # Every 12 hours
-    buildCommand: cd backend && pnpm install
+    buildCommand: cd backend && pnpm install --frozen-lockfile
     startCommand: cd backend && node src/scripts/cronUpdate.js
     envVars:
       - key: MONGODB_URI

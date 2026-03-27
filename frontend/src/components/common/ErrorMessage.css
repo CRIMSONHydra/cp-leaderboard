@@ -39,3 +39,8 @@
 .retry-button:hover {
   background: #2980b9;
 }
+
+.retry-button:focus-visible {
+  outline: 2px solid #2980b9;
+  outline-offset: 2px;
+}

@@ -10,7 +10,10 @@ export default function Tooltip({ children, content }) {
   const wrapperRef = useRef(null);
   const tooltipRef = useRef(null);
   // Generate a stable ID for the tooltip that persists across renders
-  const tooltipIdRef = useRef(`tooltip-${++tooltipIdCounter}`);
+  const tooltipIdRef = useRef(null);
+  if (tooltipIdRef.current === null) {
+    tooltipIdRef.current = `tooltip-${tooltipIdCounter++}`;
+  }
 
   useEffect(() => {
     if (visible && wrapperRef.current && tooltipRef.current) {

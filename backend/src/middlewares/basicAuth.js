@@ -18,7 +18,9 @@ const basicAuth = async (req, res, next) => {
     // Extract base64 encoded credentials
     const base64Credentials = authHeader.split(' ')[1];
     const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-    const [username, password] = credentials.split(':');
+    const colonIndex = credentials.indexOf(':');
+    const username = credentials.substring(0, colonIndex);
+    const password = credentials.substring(colonIndex + 1);
 
     if (!username || !password) {
       // Record failed attempt if rate limiter is attached
@@ -34,7 +36,7 @@ const basicAuth = async (req, res, next) => {
     // Check credentials in MongoDB
     const adminCred = await AdminCredential.findOne({ username });
 
-    if (!adminCred || adminCred.password !== password) {
+    if (!adminCred || !(await adminCred.comparePassword(password))) {
       // Record failed attempt if rate limiter is attached
       if (req.authRateLimiter) {
         req.authRateLimiter.recordFailed();

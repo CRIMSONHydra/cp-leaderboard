@@ -82,22 +82,17 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  server.close(async () => {
-    stopCleanup();
-    await closeRedis();
-    process.exit(0);
+const gracefulShutdown = async (signal) => {
+  console.log(`${signal} received, shutting down gracefully...`);
+  server.close(() => {
+    console.log('HTTP server closed');
   });
-});
+  stopCleanup();
+  await closeRedis();
+  process.exit(0);
+};
 
-process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully...');
-  server.close(async () => {
-    stopCleanup();
-    await closeRedis();
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default app;

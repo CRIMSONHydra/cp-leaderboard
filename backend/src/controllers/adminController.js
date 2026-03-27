@@ -1,5 +1,44 @@
 import AdminCredential from '../models/AdminCredential.js';
 
+// Bootstrap first admin - only works when no admins exist
+const bootstrapCredential = async (req, res) => {
+  try {
+    const count = await AdminCredential.countDocuments();
+    if (count > 0) {
+      return res.status(403).json({
+        success: false,
+        error: 'Bootstrap not allowed - admin credentials already exist. Use the authenticated endpoint instead.'
+      });
+    }
+
+    const { username, password } = req.body;
+
+    if (!username || !username.trim()) {
+      return res.status(400).json({ success: false, error: 'Username is required' });
+    }
+    if (!password || !password.trim()) {
+      return res.status(400).json({ success: false, error: 'Password is required' });
+    }
+
+    const invalidChars = /[:]/;
+    if (invalidChars.test(password) || invalidChars.test(username)) {
+      return res.status(400).json({ success: false, error: 'Credentials cannot contain colon (:) character' });
+    }
+
+    const credential = await AdminCredential.create({
+      username: username.trim(),
+      password: password
+    });
+
+    res.status(201).json({
+      success: true,
+      data: { username: credential.username, createdAt: credential.createdAt }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 const createCredential = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -50,7 +89,7 @@ const createCredential = async (req, res) => {
     // Create credential
     const credential = await AdminCredential.create({
       username: username.trim(),
-      password: password.trim()
+      password: password
     });
 
     res.status(201).json({
@@ -85,5 +124,5 @@ const verifyAuth = async (req, res) => {
   });
 };
 
-export { createCredential, verifyAuth };
+export { bootstrapCredential, createCredential, verifyAuth };
 

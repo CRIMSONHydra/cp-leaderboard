@@ -1,3 +1,4 @@
+import { PLATFORM_NAMES } from '../constants/platforms';
 import Header from '../components/Layout/Header';
 import LeaderboardTable from '../components/Leaderboard/LeaderboardTable';
 import { useUpdateStatus, useStats } from '../hooks/useLeaderboard';
@@ -18,7 +19,7 @@ export default function LeaderboardPage() {
       <footer className="app-footer">
         <p>Ratings update every 12 hours</p>
         <p className="platforms">
-          Tracking: Codeforces | AtCoder | LeetCode | CodeChef
+          Tracking: {Object.values(PLATFORM_NAMES).join(' | ')}
         </p>
       </footer>
     </div>
