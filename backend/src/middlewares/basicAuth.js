@@ -5,9 +5,8 @@ const basicAuth = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Basic ')) {
-      // Record failed attempt if rate limiter is attached
       if (req.authRateLimiter) {
-        req.authRateLimiter.recordFailed();
+        await req.authRateLimiter.recordFailed();
       }
       return res.status(401).json({
         success: false,
@@ -23,9 +22,8 @@ const basicAuth = async (req, res, next) => {
     const password = credentials.substring(colonIndex + 1);
 
     if (!username || !password) {
-      // Record failed attempt if rate limiter is attached
       if (req.authRateLimiter) {
-        req.authRateLimiter.recordFailed();
+        await req.authRateLimiter.recordFailed();
       }
       return res.status(401).json({
         success: false,
@@ -37,9 +35,8 @@ const basicAuth = async (req, res, next) => {
     const adminCred = await AdminCredential.findOne({ username });
 
     if (!adminCred || !(await adminCred.comparePassword(password))) {
-      // Record failed attempt if rate limiter is attached
       if (req.authRateLimiter) {
-        req.authRateLimiter.recordFailed();
+        await req.authRateLimiter.recordFailed();
       }
       return res.status(401).json({
         success: false,
@@ -49,20 +46,22 @@ const basicAuth = async (req, res, next) => {
 
     // Clear failed attempts on successful authentication
     if (req.authRateLimiter) {
-      req.authRateLimiter.clearFailed();
+      await req.authRateLimiter.clearFailed();
     }
 
     // Attach user info to request
     req.user = { username: adminCred.username };
     next();
   } catch (error) {
-    // Record failed attempt on error
     if (req.authRateLimiter) {
-      req.authRateLimiter.recordFailed();
+      await req.authRateLimiter.recordFailed().catch(e =>
+        console.error('Failed to record auth attempt:', e.message)
+      );
     }
+    console.error('Authentication error:', error);
     res.status(500).json({
       success: false,
-      error: 'Authentication error: ' + error.message
+      error: 'Authentication error'
     });
   }
 };

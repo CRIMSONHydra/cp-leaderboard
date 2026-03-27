@@ -1,8 +1,25 @@
 import AdminCredential from '../models/AdminCredential.js';
 
-// Bootstrap first admin - only works when no admins exist
+// Bootstrap first admin - only works when no admins exist and requires bootstrap secret
 const bootstrapCredential = async (req, res) => {
   try {
+    // Require a bootstrap secret to prevent unauthorized initial setup
+    const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
+    if (!bootstrapSecret) {
+      return res.status(403).json({
+        success: false,
+        error: 'Bootstrap not configured. Set BOOTSTRAP_SECRET environment variable.'
+      });
+    }
+
+    const providedSecret = req.headers['x-bootstrap-secret'] || req.body.bootstrapSecret;
+    if (!providedSecret || providedSecret !== bootstrapSecret) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid or missing bootstrap secret'
+      });
+    }
+
     const count = await AdminCredential.countDocuments();
     if (count > 0) {
       return res.status(403).json({
@@ -35,7 +52,8 @@ const bootstrapCredential = async (req, res) => {
       data: { username: credential.username, createdAt: credential.createdAt }
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Bootstrap credential error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -108,9 +126,10 @@ const createCredential = async (req, res) => {
       });
     }
 
+    console.error('Create credential error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: 'Internal server error'
     });
   }
 };

@@ -17,6 +17,10 @@ async function fetchCodeforcesHistory(handle) {
       return { success: false, error: response.data.comment || 'API error' };
     }
 
+    if (!Array.isArray(response.data.result)) {
+      return { success: false, error: 'Invalid API response: missing result' };
+    }
+
     const history = response.data.result.map(entry => ({
       date: new Date(entry.ratingUpdateTimeSeconds * 1000).toISOString(),
       rating: entry.newRating,
@@ -66,6 +70,10 @@ async function fetchAtCoderHistory(handle) {
       `https://atcoder.jp/users/${encodeURIComponent(handle)}/history/json`,
       { timeout: 15000 }
     );
+
+    if (!Array.isArray(response.data)) {
+      return { success: false, error: 'Invalid API response: expected array' };
+    }
 
     const history = response.data.map(entry => ({
       date: new Date(entry.EndTime).toISOString(),
@@ -132,17 +140,17 @@ async function fetchLeetCodeHistory(handle) {
     }
 
     // Filter only attended contests and map to our format
-    let prevRating = 1500; // Default starting rating
+    let prevRating = null;
     const history = historyData
       .filter(entry => entry.attended)
       .map(entry => {
-        const change = Math.round(entry.rating - prevRating);
+        const change = prevRating === null ? 0 : Math.round(entry.rating - prevRating);
         const result = {
           date: new Date(entry.contest.startTime * 1000).toISOString(),
           rating: Math.round(entry.rating),
           contestName: entry.contest.title,
           rank: entry.ranking,
-          change: change
+          change
         };
         prevRating = entry.rating;
         return result;
@@ -255,43 +263,26 @@ async function fetchCodeChefHistory(handle) {
  * @returns {Promise<object>} Object with history for each platform
  */
 async function fetchAllHistory(handles) {
+  const fetchers = {
+    codeforces: fetchCodeforcesHistory,
+    atcoder: fetchAtCoderHistory,
+    leetcode: fetchLeetCodeHistory,
+    codechef: fetchCodeChefHistory
+  };
+
+  const entries = Object.entries(fetchers)
+    .filter(([platform]) => handles[platform])
+    .map(([platform, fetcher]) => ({
+      platform,
+      promise: fetcher(handles[platform])
+    }));
+
+  const settled = await Promise.all(entries.map(e => e.promise));
+
   const results = {};
-  const promises = [];
-
-  if (handles.codeforces) {
-    promises.push(
-      fetchCodeforcesHistory(handles.codeforces).then(r => {
-        results.codeforces = r;
-      })
-    );
-  }
-
-  if (handles.atcoder) {
-    promises.push(
-      fetchAtCoderHistory(handles.atcoder).then(r => {
-        results.atcoder = r;
-      })
-    );
-  }
-
-  if (handles.leetcode) {
-    promises.push(
-      fetchLeetCodeHistory(handles.leetcode).then(r => {
-        results.leetcode = r;
-      })
-    );
-  }
-
-  if (handles.codechef) {
-    promises.push(
-      fetchCodeChefHistory(handles.codechef).then(r => {
-        results.codechef = r;
-      })
-    );
-  }
-
-  // Fetch all in parallel
-  await Promise.all(promises);
+  entries.forEach((entry, i) => {
+    results[entry.platform] = settled[i];
+  });
 
   return results;
 }

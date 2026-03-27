@@ -36,12 +36,18 @@ export default function Tooltip({ children, content }) {
       }
       
       // If tooltip would overflow top, show it below instead
+      let showBelow = false;
       if (top - tooltipRect.height < 10) {
         top = wrapperRect.bottom + 8;
-        setPosition({ top, left, showBelow: true });
-      } else {
-        setPosition({ top, left, showBelow: false });
+        showBelow = true;
+
+        // Check if tooltip overflows bottom edge when shown below
+        if (top + tooltipRect.height > window.innerHeight - 10) {
+          top = window.innerHeight - tooltipRect.height - 10;
+        }
       }
+
+      setPosition({ top, left, showBelow });
     }
   }, [visible]);
 
