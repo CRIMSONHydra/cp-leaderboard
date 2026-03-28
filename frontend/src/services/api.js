@@ -11,6 +11,23 @@ async function fetchJSON(url, options = {}) {
   return response.json();
 }
 
+function authenticatedFetch(url, { method = 'GET', body, username, password }) {
+  if (!username || !password) {
+    return Promise.reject(new Error('Authentication required'));
+  }
+  const headers = {
+    'Authorization': `Basic ${encodeBasicAuth(username, password)}`
+  };
+  if (body) {
+    headers['Content-Type'] = 'application/json';
+  }
+  return fetchJSON(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+}
+
 export const api = {
   getLeaderboard: (sortBy = 'aggregate', order = 'desc') =>
     fetchJSON(`/leaderboard?sortBy=${sortBy}&order=${order}`),
@@ -33,58 +50,12 @@ export const api = {
   getHealth: () =>
     fetchJSON('/health'),
 
-  addUser: (userData, username, password) => {
-    if (!username || !password) {
-      return Promise.reject(new Error('Authentication required'));
-    }
-    try {
-      const authHeader = `Basic ${encodeBasicAuth(username, password)}`;
-      return fetchJSON('/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authHeader
-        },
-        body: JSON.stringify(userData)
-      });
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  },
+  addUser: (userData, username, password) =>
+    authenticatedFetch('/users', { method: 'POST', body: userData, username, password }),
 
-  addAdminCredential: (credentialData, username, password) => {
-    if (!username || !password) {
-      return Promise.reject(new Error('Authentication required'));
-    }
-    try {
-      const authHeader = `Basic ${encodeBasicAuth(username, password)}`;
-      return fetchJSON('/admin/credentials', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authHeader
-        },
-        body: JSON.stringify(credentialData)
-      });
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  },
+  addAdminCredential: (credentialData, username, password) =>
+    authenticatedFetch('/admin/credentials', { method: 'POST', body: credentialData, username, password }),
 
-  verifyAuth: (username, password) => {
-    if (!username || !password) {
-      return Promise.reject(new Error('Username and password are required'));
-    }
-    try {
-      const authHeader = `Basic ${encodeBasicAuth(username, password)}`;
-      return fetchJSON('/admin/verify', {
-        method: 'GET',
-        headers: {
-          'Authorization': authHeader
-        }
-      });
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  }
+  verifyAuth: (username, password) =>
+    authenticatedFetch('/admin/verify', { username, password })
 };

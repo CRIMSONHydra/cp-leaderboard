@@ -5,6 +5,7 @@ export default function SortButton({ label, active, direction, onClick }) {
     <button
       className={`sort-button ${active ? 'active' : ''}`}
       onClick={onClick}
+      aria-label={active ? `Sort by ${label} ${direction === 'desc' ? 'descending' : 'ascending'}` : `Sort by ${label}`}
     >
       <span className="sort-label">{label}</span>
       {active && (

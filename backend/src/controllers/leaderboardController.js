@@ -7,6 +7,14 @@ const getLeaderboard = async (req, res) => {
   try {
     const { sortBy = 'aggregate', order = 'desc' } = req.query;
 
+    const validSortOptions = ['aggregate', 'name', ...PLATFORMS];
+    if (!validSortOptions.includes(sortBy)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid sortBy. Valid options: ${validSortOptions.join(', ')}`
+      });
+    }
+
     const dir = order === 'desc' ? -1 : 1;
     const platformSortOptions = Object.fromEntries(
       PLATFORMS.map(p => [p, { [`ratings.${p}.rating`]: dir }])
@@ -28,7 +36,8 @@ const getLeaderboard = async (req, res) => {
       data: users
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -60,7 +69,8 @@ const getPlatformLeaderboard = async (req, res) => {
       data: users
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -76,7 +86,8 @@ const getUserDetails = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ success: false, error: 'Invalid user ID format' });
     }
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -116,7 +127,8 @@ const getStats = async (req, res) => {
       data: stats[0] || defaultStats
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -148,7 +160,8 @@ const getUserHistory = async (req, res) => {
     if (error.name === 'CastError') {
       return res.status(400).json({ success: false, error: 'Invalid user ID format' });
     }
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 

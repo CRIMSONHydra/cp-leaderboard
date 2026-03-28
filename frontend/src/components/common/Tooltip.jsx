@@ -1,61 +1,58 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useId, useRef, useEffect, useCallback } from 'react';
 import './Tooltip.css';
-
-// Module-level counter for generating stable, unique tooltip IDs
-let tooltipIdCounter = 0;
 
 export default function Tooltip({ children, content }) {
   const [visible, setVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const wrapperRef = useRef(null);
   const tooltipRef = useRef(null);
-  // Generate a stable ID for the tooltip that persists across renders
-  const tooltipIdRef = useRef(null);
-  if (tooltipIdRef.current === null) {
-    tooltipIdRef.current = `tooltip-${tooltipIdCounter++}`;
-  }
+  const tooltipId = useId();
+
+  const computePosition = useCallback(() => {
+    if (!wrapperRef.current || !tooltipRef.current) return;
+    const wrapperRect = wrapperRef.current.getBoundingClientRect();
+    const tooltipRect = tooltipRef.current.getBoundingClientRect();
+
+    let left = wrapperRect.left + (wrapperRect.width / 2);
+    let top = wrapperRect.top - 8;
+
+    const tooltipHalfWidth = tooltipRect.width / 2;
+    if (left - tooltipHalfWidth < 10) {
+      left = tooltipHalfWidth + 10;
+    }
+    if (left + tooltipHalfWidth > window.innerWidth - 10) {
+      left = window.innerWidth - tooltipHalfWidth - 10;
+    }
+
+    let showBelow = false;
+    if (top - tooltipRect.height < 10) {
+      top = wrapperRect.bottom + 8;
+      showBelow = true;
+      if (top + tooltipRect.height > window.innerHeight - 10) {
+        top = window.innerHeight - tooltipRect.height - 10;
+      }
+    }
+
+    setPosition({ top, left, showBelow });
+  }, []);
 
   useEffect(() => {
-    if (visible && wrapperRef.current && tooltipRef.current) {
-      const wrapperRect = wrapperRef.current.getBoundingClientRect();
-      const tooltipRect = tooltipRef.current.getBoundingClientRect();
-      
-      // Calculate position to center above the icon
-      let left = wrapperRect.left + (wrapperRect.width / 2);
-      let top = wrapperRect.top - 8; // 8px gap above the icon
-      
-      // Adjust if tooltip would overflow left edge
-      const tooltipHalfWidth = tooltipRect.width / 2;
-      if (left - tooltipHalfWidth < 10) {
-        left = tooltipHalfWidth + 10;
-      }
-      
-      // Adjust if tooltip would overflow right edge
-      if (left + tooltipHalfWidth > window.innerWidth - 10) {
-        left = window.innerWidth - tooltipHalfWidth - 10;
-      }
-      
-      // If tooltip would overflow top, show it below instead
-      let showBelow = false;
-      if (top - tooltipRect.height < 10) {
-        top = wrapperRect.bottom + 8;
-        showBelow = true;
+    if (!visible) return;
+    // Use rAF to avoid synchronous setState in effect body
+    const rafId = requestAnimationFrame(computePosition);
+    const handleResize = () => requestAnimationFrame(computePosition);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [visible, computePosition]);
 
-        // Check if tooltip overflows bottom edge when shown below
-        if (top + tooltipRect.height > window.innerHeight - 10) {
-          top = window.innerHeight - tooltipRect.height - 10;
-        }
-      }
-
-      setPosition({ top, left, showBelow });
-    }
-  }, [visible]);
-
-  const handleShow = () => setVisible(true);
-  const handleHide = () => setVisible(false);
+  const handleShow = useCallback(() => setVisible(true), []);
+  const handleHide = useCallback(() => setVisible(false), []);
 
   return (
-    <div 
+    <div
       ref={wrapperRef}
       className="tooltip-wrapper"
       tabIndex={0}
@@ -63,12 +60,12 @@ export default function Tooltip({ children, content }) {
       onMouseLeave={handleHide}
       onFocus={handleShow}
       onBlur={handleHide}
-      aria-describedby={visible ? tooltipIdRef.current : undefined}
+      aria-describedby={visible ? tooltipId : undefined}
     >
       {children}
-      <div 
+      <div
         ref={tooltipRef}
-        id={tooltipIdRef.current}
+        id={tooltipId}
         role="tooltip"
         aria-hidden={!visible}
         className={`tooltip-content ${position.showBelow ? 'tooltip-below' : ''}`}
@@ -83,4 +80,3 @@ export default function Tooltip({ children, content }) {
     </div>
   );
 }
-

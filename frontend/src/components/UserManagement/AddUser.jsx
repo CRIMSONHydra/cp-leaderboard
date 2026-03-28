@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
@@ -23,6 +23,13 @@ export default function AddUser() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const successTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -76,7 +83,7 @@ export default function AddUser() {
       });
 
       // Clear success message after 3 seconds
-      setTimeout(() => {
+      successTimerRef.current = setTimeout(() => {
         setSuccess(false);
       }, 3000);
     } catch (err) {

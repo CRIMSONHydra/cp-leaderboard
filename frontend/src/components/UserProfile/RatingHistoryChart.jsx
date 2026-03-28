@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import {
   LineChart,
   Line,
@@ -38,57 +38,56 @@ export default function RatingHistoryChart({ history, platforms }) {
   const [tooltipData, setTooltipData] = useState(null);
   const lastLabelRef = useRef(null);
 
-  const handleTooltipUpdate = (data) => {
+  const handleTooltipUpdate = useCallback((data) => {
     if (data.label !== lastLabelRef.current) {
       lastLabelRef.current = data.label;
       setTooltipData(data);
     }
-  };
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     lastLabelRef.current = null;
     setTooltipData(null);
-  };
+  }, []);
 
-  // Combine all platform histories into a single timeline
-  const dateMap = new Map();
+  // Combine all platform histories into a single timeline (memoized)
+  const filledData = useMemo(() => {
+    const dateMap = new Map();
 
-  for (const platform of platforms) {
-    const platformHistory = history[platform];
-    if (!platformHistory?.success || !platformHistory.data?.length) continue;
-
-    for (const entry of platformHistory.data) {
-      const dateKey = entry.date.split('T')[0];
-      
-      if (!dateMap.has(dateKey)) {
-        dateMap.set(dateKey, { date: entry.date });
-      }
-      
-      const dataPoint = dateMap.get(dateKey);
-      dataPoint[platform] = entry.rating;
-    }
-  }
-
-  const sortedData = Array.from(dateMap.values()).sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
-  );
-
-  const filledData = [];
-  const lastValues = {};
-
-  for (const point of sortedData) {
-    const newPoint = { ...point };
-    
     for (const platform of platforms) {
-      if (point[platform] !== undefined) {
-        lastValues[platform] = point[platform];
-      } else if (lastValues[platform] !== undefined) {
-        newPoint[platform] = lastValues[platform];
+      const platformHistory = history[platform];
+      if (!platformHistory?.success || !platformHistory.data?.length) continue;
+
+      for (const entry of platformHistory.data) {
+        const dateKey = entry.date.split('T')[0];
+        if (!dateMap.has(dateKey)) {
+          dateMap.set(dateKey, { date: entry.date });
+        }
+        dateMap.get(dateKey)[platform] = entry.rating;
       }
     }
-    
-    filledData.push(newPoint);
-  }
+
+    const sortedData = Array.from(dateMap.values()).sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    const filled = [];
+    const lastValues = {};
+
+    for (const point of sortedData) {
+      const newPoint = { ...point };
+      for (const platform of platforms) {
+        if (point[platform] !== undefined) {
+          lastValues[platform] = point[platform];
+        } else if (lastValues[platform] !== undefined) {
+          newPoint[platform] = lastValues[platform];
+        }
+      }
+      filled.push(newPoint);
+    }
+
+    return filled;
+  }, [history, platforms]);
 
   if (filledData.length === 0) {
     return (
@@ -196,29 +195,31 @@ export function SinglePlatformChart({ history, platform }) {
   const [tooltipInfo, setTooltipInfo] = useState(null);
   const lastDataRef = useRef(null);
 
-  if (!history?.success || !history.data?.length) {
+  const data = useMemo(() => {
+    if (!history?.success || !history.data?.length) return [];
+    return history.data.map(entry => ({
+      date: entry.date,
+      rating: entry.rating,
+      contestName: entry.contestName,
+      change: entry.change,
+      rank: entry.rank
+    }));
+  }, [history]);
+
+  const handleDataChange = useCallback((newData) => {
+    if (newData?.date !== lastDataRef.current?.date) {
+      lastDataRef.current = newData;
+      setTooltipInfo(newData);
+    }
+  }, []);
+
+  if (data.length === 0) {
     return (
       <div className="single-chart-empty">
         <p>No history available</p>
       </div>
     );
   }
-
-  const data = history.data.map(entry => ({
-    date: entry.date,
-    rating: entry.rating,
-    contestName: entry.contestName,
-    change: entry.change,
-    rank: entry.rank
-  }));
-
-  const handleDataChange = (newData) => {
-    // Only update if data actually changed
-    if (newData?.date !== lastDataRef.current?.date) {
-      lastDataRef.current = newData;
-      setTooltipInfo(newData);
-    }
-  };
 
   return (
     <div className="single-chart-container">

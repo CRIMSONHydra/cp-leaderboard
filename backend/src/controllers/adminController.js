@@ -6,7 +6,9 @@ import AdminCredential from '../models/AdminCredential.js';
  */
 function validateCredentials(username, password) {
   if (!username || !username.trim()) return 'Username is required';
+  if (username.trim().length < 3) return 'Username must be at least 3 characters';
   if (!password || !password.trim()) return 'Password is required';
+  if (password.length < 8) return 'Password must be at least 8 characters';
   const invalidChars = /[:]/;
   if (invalidChars.test(username)) return 'Username cannot contain colon (:) character';
   if (invalidChars.test(password)) return 'Password cannot contain colon (:) character';

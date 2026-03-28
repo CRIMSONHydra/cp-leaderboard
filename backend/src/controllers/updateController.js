@@ -97,7 +97,8 @@ const triggerUpdate = async (req, res) => {
       throw error;
     }
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Update error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -118,7 +119,8 @@ const updateUser = async (req, res) => {
       errors: errors.length > 0 ? errors : undefined
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Update error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 
@@ -133,7 +135,8 @@ const getUpdateStatus = async (req, res) => {
       data: currentLock || null
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error('Update error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 

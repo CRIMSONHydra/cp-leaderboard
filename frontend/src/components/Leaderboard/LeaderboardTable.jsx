@@ -53,7 +53,7 @@ export default function LeaderboardTable() {
                   onClick={() => handleSort('aggregate')}
                 />
                 <Tooltip content="Normalized aggregate score (0-100) calculated from all platform ratings. Higher ratings on each platform contribute to a higher aggregate score.">
-                  <span className="info-icon">ⓘ</span>
+                  <span className="info-icon" aria-label="Information about aggregate score">ⓘ</span>
                 </Tooltip>
               </div>
             </th>

@@ -4,6 +4,11 @@ import fetchers from './platformFetchers/index.js';
 import { getRankFromRating as getLeetCodeRank } from './platformFetchers/leetcode.js';
 import { PLATFORMS } from '../../../shared/constants.js';
 
+// Delay between platform API requests for the same user (ms)
+const PLATFORM_REQUEST_DELAY_MS = 100;
+// Delay between users during batch update (ms)
+const USER_UPDATE_DELAY_MS = 500;
+
 // Normalization tiers for each platform
 // Maps platform ratings to a common 0-100 scale based on skill levels
 const NORMALIZATION_TIERS = {
@@ -163,8 +168,7 @@ async function updateSingleUser(user) {
         };
         errors.push({ userId: user._id, platform, error: errorMsg });
       }
-      // Small delay between platform requests for the same user
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, PLATFORM_REQUEST_DELAY_MS));
     }
   }
 
@@ -212,8 +216,7 @@ async function updateAllUsers(lock, releaseLock) {
         allErrors.push({ userId: user._id, platform: 'all', error: error.message });
       }
 
-      // Delay between users to avoid rate limiting
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, USER_UPDATE_DELAY_MS));
     }
 
     // Release lock with success status

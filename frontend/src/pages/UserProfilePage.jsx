@@ -24,7 +24,7 @@ export default function UserProfilePage() {
   if (error) {
     return (
       <div className="user-profile-page">
-        <button className="btn-back" onClick={() => navigate('/')}>
+        <button type="button" className="btn-back" onClick={() => navigate('/')}>
           ← Back to Leaderboard
         </button>
         <ErrorMessage message={error} />
@@ -35,7 +35,7 @@ export default function UserProfilePage() {
   if (!userData) {
     return (
       <div className="user-profile-page">
-        <button className="btn-back" onClick={() => navigate('/')}>
+        <button type="button" className="btn-back" onClick={() => navigate('/')}>
           ← Back to Leaderboard
         </button>
         <ErrorMessage message="User not found" />
