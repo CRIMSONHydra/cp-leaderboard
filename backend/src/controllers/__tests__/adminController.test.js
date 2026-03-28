@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { connectTestDB, disconnectTestDB, clearTestDB } from '../../test/dbSetup.js';
 import { bootstrapCredential, createCredential, verifyAuth } from '../adminController.js';
 import AdminCredential from '../../models/AdminCredential.js';

@@ -61,7 +61,7 @@ describe('AdminCredential model', () => {
 
     await expect(
       AdminCredential.create({ username: 'admin', password: 'password2' })
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({ code: 11000 });
   });
 
   it('trims whitespace from username', async () => {
