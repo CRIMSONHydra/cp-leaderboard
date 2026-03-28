@@ -1,6 +1,6 @@
 import { encodeBasicAuth } from '../utils/basicAuth.js';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE = import.meta.env.VITE_API_URL ?? '/api';
 
 async function fetchJSON(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, options);

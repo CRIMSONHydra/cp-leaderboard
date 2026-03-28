@@ -11,6 +11,8 @@
     "build": "pnpm --filter frontend build && pnpm --filter cp-leaderboard-backend build",
     "build:frontend": "pnpm --filter frontend build",
     "build:backend": "pnpm --filter cp-leaderboard-backend build",
+    "build:prod": "pnpm install --frozen-lockfile && pnpm --filter frontend build && mkdir -p backend/public && cp -r frontend/dist/* backend/public/",
+    "start": "node backend/src/server.js",
     "lint": "pnpm --filter frontend lint",
     "validate:constants": "node scripts/validate-constants.js",
     "pretest": "pnpm run validate:constants",
