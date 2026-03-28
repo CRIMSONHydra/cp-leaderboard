@@ -261,4 +261,4 @@ async function fetchCodeChefRating(handle) {
   };
 }
 
-export { fetchCodeChefRating };
+export { fetchCodeChefRating, getStarsFromRating };

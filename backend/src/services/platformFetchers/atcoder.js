@@ -62,4 +62,4 @@ async function fetchAtCoderRating(handle) {
   }
 }
 
-export { fetchAtCoderRating };
+export { fetchAtCoderRating, getRankFromRating };

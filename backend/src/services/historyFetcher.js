@@ -292,6 +292,7 @@ export {
   fetchAtCoderHistory,
   fetchLeetCodeHistory,
   fetchCodeChefHistory,
-  fetchAllHistory
+  fetchAllHistory,
+  cleanAtCoderContestName
 };
 

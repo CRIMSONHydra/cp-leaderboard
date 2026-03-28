@@ -1,4 +1,9 @@
+import bcrypt from 'bcrypt';
 import AdminCredential from '../models/AdminCredential.js';
+
+// Pre-hashed dummy value to compare against when user doesn't exist,
+// preventing timing attacks that reveal valid usernames
+const DUMMY_HASH = bcrypt.hashSync('dummy-timing-pad', 10);
 
 const basicAuth = async (req, res, next) => {
   try {
@@ -34,7 +39,13 @@ const basicAuth = async (req, res, next) => {
     // Check credentials in MongoDB
     const adminCred = await AdminCredential.findOne({ username });
 
-    if (!adminCred || !(await adminCred.comparePassword(password))) {
+    // Always perform password comparison to prevent timing attacks
+    // that could reveal whether a username exists
+    const passwordMatch = adminCred
+      ? await adminCred.comparePassword(password)
+      : await bcrypt.compare(password, DUMMY_HASH).then(() => false);
+
+    if (!passwordMatch) {
       if (req.authRateLimiter) {
         await req.authRateLimiter.recordFailed();
       }

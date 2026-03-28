@@ -1,9 +1,23 @@
 import AdminCredential from '../models/AdminCredential.js';
 
+/**
+ * Validate credential fields (shared between bootstrap and create).
+ * Returns an error string if invalid, or null if valid.
+ */
+function validateCredentials(username, password) {
+  if (!username || !username.trim()) return 'Username is required';
+  if (username.trim().length < 3) return 'Username must be at least 3 characters';
+  if (!password || !password.trim()) return 'Password is required';
+  if (password.length < 8) return 'Password must be at least 8 characters';
+  const invalidChars = /[:]/;
+  if (invalidChars.test(username)) return 'Username cannot contain colon (:) character';
+  if (invalidChars.test(password)) return 'Password cannot contain colon (:) character';
+  return null;
+}
+
 // Bootstrap first admin - only works when no admins exist and requires bootstrap secret
 const bootstrapCredential = async (req, res) => {
   try {
-    // Require a bootstrap secret to prevent unauthorized initial setup
     const bootstrapSecret = process.env.BOOTSTRAP_SECRET;
     if (!bootstrapSecret) {
       return res.status(403).json({
@@ -29,17 +43,9 @@ const bootstrapCredential = async (req, res) => {
     }
 
     const { username, password } = req.body;
-
-    if (!username || !username.trim()) {
-      return res.status(400).json({ success: false, error: 'Username is required' });
-    }
-    if (!password || !password.trim()) {
-      return res.status(400).json({ success: false, error: 'Password is required' });
-    }
-
-    const invalidChars = /[:]/;
-    if (invalidChars.test(password) || invalidChars.test(username)) {
-      return res.status(400).json({ success: false, error: 'Credentials cannot contain colon (:) character' });
+    const validationError = validateCredentials(username, password);
+    if (validationError) {
+      return res.status(400).json({ success: false, error: validationError });
     }
 
     const credential = await AdminCredential.create({
@@ -60,51 +66,16 @@ const bootstrapCredential = async (req, res) => {
 const createCredential = async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    // Validate required fields
-    if (!username || !username.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Username is required'
-      });
+    const validationError = validateCredentials(username, password);
+    if (validationError) {
+      return res.status(400).json({ success: false, error: validationError });
     }
 
-    if (!password || !password.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password is required'
-      });
-    }
-
-    // Validate password doesn't contain problematic characters
-    // Disallow colon (:) as it's used as delimiter in Basic Auth
-    // Also disallow other control characters that could cause issues
-    const invalidChars = /[:]/;
-    if (invalidChars.test(password)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password cannot contain colon (:) character'
-      });
-    }
-
-    // Validate username doesn't contain colons either
-    if (invalidChars.test(username)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Username cannot contain colon (:) character'
-      });
-    }
-
-    // Check if username already exists
     const existingCred = await AdminCredential.findOne({ username: username.trim() });
     if (existingCred) {
-      return res.status(409).json({
-        success: false,
-        error: 'Username already exists'
-      });
+      return res.status(409).json({ success: false, error: 'Username already exists' });
     }
 
-    // Create credential
     const credential = await AdminCredential.create({
       username: username.trim(),
       password: password
@@ -118,19 +89,12 @@ const createCredential = async (req, res) => {
       }
     });
   } catch (error) {
-    // Handle duplicate key error
     if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        error: 'Username already exists'
-      });
+      return res.status(409).json({ success: false, error: 'Username already exists' });
     }
 
     console.error('Create credential error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
 

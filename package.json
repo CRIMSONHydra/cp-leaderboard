@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "dev": "pnpm --filter cp-leaderboard-backend dev & pnpm --filter frontend dev",
     "dev:backend": "pnpm --filter cp-leaderboard-backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "build": "pnpm --filter frontend build && pnpm --filter cp-leaderboard-backend build",
@@ -13,7 +14,11 @@
     "lint": "pnpm --filter frontend lint",
     "validate:constants": "node scripts/validate-constants.js",
     "pretest": "pnpm run validate:constants",
-    "test": "echo \"Tests not yet implemented\" && exit 0"
+    "test": "pnpm --filter cp-leaderboard-backend test && pnpm --filter frontend test",
+    "test:backend": "pnpm --filter cp-leaderboard-backend test",
+    "test:frontend": "pnpm --filter frontend test",
+    "test:watch": "pnpm --filter cp-leaderboard-backend test:watch & pnpm --filter frontend test:watch",
+    "test:coverage": "pnpm --filter cp-leaderboard-backend test:coverage && pnpm --filter frontend test:coverage"
   },
   "keywords": [
     "competitive-programming",
@@ -30,6 +35,8 @@
     "overrides": {
       "vite": "npm:rolldown-vite@7.2.5"
     }
+  },
+  "devDependencies": {
+    "vitest": "^4.1.2"
   }
 }
-

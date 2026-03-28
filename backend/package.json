@@ -9,6 +9,9 @@
     "dev": "nodemon src/server.js",
     "seed": "node src/scripts/seed.js",
     "update": "node src/scripts/cronUpdate.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "validate:constants": "node ../scripts/validate-constants.js"
   },
   "keywords": [
@@ -35,9 +38,10 @@
     "rate-limit-redis": "^4.3.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "vitest": "^4.1.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

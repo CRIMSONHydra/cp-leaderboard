@@ -4,6 +4,11 @@ import fetchers from './platformFetchers/index.js';
 import { getRankFromRating as getLeetCodeRank } from './platformFetchers/leetcode.js';
 import { PLATFORMS } from '../../../shared/constants.js';
 
+// Delay between platform API requests for the same user (ms)
+const PLATFORM_REQUEST_DELAY_MS = 100;
+// Delay between users during batch update (ms)
+const USER_UPDATE_DELAY_MS = 500;
+
 // Normalization tiers for each platform
 // Maps platform ratings to a common 0-100 scale based on skill levels
 const NORMALIZATION_TIERS = {
@@ -119,52 +124,52 @@ async function updateSingleUser(user) {
   const errors = [];
   const currentRatings = user.ratings?.toObject?.() || user.ratings || {};
 
-  for (const platform of PLATFORMS) {
-    const handle = user.handles?.[platform];
-    if (handle && fetchers[platform]) {
-      try {
-        const result = await fetchers[platform](handle);
-        
-        // Preserve maxRating if current stored value is higher
-        const storedMaxRating = currentRatings[platform]?.maxRating;
-        const newRating = result.rating;
-        const fetchedMaxRating = result.maxRating;
-        
-        // Determine the actual maxRating
-        let actualMaxRating = fetchedMaxRating;
-        if (storedMaxRating && (!fetchedMaxRating || storedMaxRating > fetchedMaxRating)) {
-          actualMaxRating = storedMaxRating;
-        }
-        if (newRating && (!actualMaxRating || newRating > actualMaxRating)) {
-          actualMaxRating = newRating;
-        }
-        
-        // Update maxRating in result
-        result.maxRating = actualMaxRating;
-        
-        // Derive maxRank from maxRating for LeetCode (it doesn't provide maxRank)
-        if (platform === 'leetcode' && actualMaxRating && !result.maxRank) {
-          result.maxRank = getLeetCodeRank(actualMaxRating);
-        }
-        
-        updates[`ratings.${platform}`] = result;
-        if (result.error) {
-          errors.push({ userId: user._id, platform, error: result.error });
-        }
-      } catch (error) {
-        const errorMsg = error.message || 'Unknown error';
-        updates[`ratings.${platform}`] = {
-          rating: null,
-          maxRating: currentRatings[platform]?.maxRating || null, // Preserve stored maxRating on error
-          rank: null,
-          maxRank: null,
-          lastUpdated: new Date(),
-          error: errorMsg
-        };
-        errors.push({ userId: user._id, platform, error: errorMsg });
+  const activePlatforms = PLATFORMS.filter(p => user.handles?.[p] && fetchers[p]);
+  for (let i = 0; i < activePlatforms.length; i++) {
+    const platform = activePlatforms[i];
+    try {
+      const result = await fetchers[platform](user.handles[platform]);
+
+      // Preserve maxRating if current stored value is higher
+      const storedMaxRating = currentRatings[platform]?.maxRating;
+      const newRating = result.rating;
+      const fetchedMaxRating = result.maxRating;
+
+      // Determine the actual maxRating
+      let actualMaxRating = fetchedMaxRating;
+      if (storedMaxRating && (!fetchedMaxRating || storedMaxRating > fetchedMaxRating)) {
+        actualMaxRating = storedMaxRating;
       }
-      // Small delay between platform requests for the same user
-      await new Promise(r => setTimeout(r, 100));
+      if (newRating && (!actualMaxRating || newRating > actualMaxRating)) {
+        actualMaxRating = newRating;
+      }
+
+      // Update maxRating in result
+      result.maxRating = actualMaxRating;
+
+      // Derive maxRank from maxRating for LeetCode (it doesn't provide maxRank)
+      if (platform === 'leetcode' && actualMaxRating && !result.maxRank) {
+        result.maxRank = getLeetCodeRank(actualMaxRating);
+      }
+
+      updates[`ratings.${platform}`] = result;
+      if (result.error) {
+        errors.push({ userId: user._id, platform, error: result.error });
+      }
+    } catch (error) {
+      const errorMsg = error.message || 'Unknown error';
+      updates[`ratings.${platform}`] = {
+        rating: null,
+        maxRating: currentRatings[platform]?.maxRating || null,
+        rank: null,
+        maxRank: null,
+        lastUpdated: new Date(),
+        error: errorMsg
+      };
+      errors.push({ userId: user._id, platform, error: errorMsg });
+    }
+    if (i < activePlatforms.length - 1) {
+      await new Promise(r => setTimeout(r, PLATFORM_REQUEST_DELAY_MS));
     }
   }
 
@@ -194,13 +199,14 @@ async function updateAllUsers(lock, releaseLock) {
     const users = await User.find({ isActive: true });
     console.log(`Starting update for ${users.length} users...`);
 
-    for (const user of users) {
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
       try {
         console.log(`Updating user: ${user.name}`);
         const errors = await updateSingleUser(user);
         allErrors.push(...errors);
         updated++;
-        
+
         // Update progress periodically (every 5 users)
         if (updated % 5 === 0) {
           await UpdateLog.findByIdAndUpdate(lock._id, {
@@ -212,8 +218,9 @@ async function updateAllUsers(lock, releaseLock) {
         allErrors.push({ userId: user._id, platform: 'all', error: error.message });
       }
 
-      // Delay between users to avoid rate limiting
-      await new Promise(r => setTimeout(r, 500));
+      if (i < users.length - 1) {
+        await new Promise(r => setTimeout(r, USER_UPDATE_DELAY_MS));
+      }
     }
 
     // Release lock with success status
