@@ -8,12 +8,15 @@ export function useUserProfile(id) {
   const [history, setHistory] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchUserData() {
       setLoading(true);
       setError(null);
 
       try {
         const response = await api.getUserHistory(id);
+        if (cancelled) return;
         if (response.success) {
           setUserData(response.data.user);
           setHistory(response.data.history);
@@ -21,13 +24,15 @@ export function useUserProfile(id) {
           setError(response.error || 'Failed to load user data');
         }
       } catch (err) {
+        if (cancelled) return;
         setError(err.message || 'Failed to load user data');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchUserData();
+    return () => { cancelled = true; };
   }, [id]);
 
   return { loading, error, userData, history };

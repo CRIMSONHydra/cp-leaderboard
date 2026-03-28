@@ -6,9 +6,8 @@ describe('safeBase64Encode', () => {
     expect(safeBase64Encode('hello')).toBe('aGVsbG8=');
   });
 
-  it('encodes empty string without error', () => {
-    const result = safeBase64Encode('');
-    expect(typeof result).toBe('string');
+  it('encodes empty string to empty string', () => {
+    expect(safeBase64Encode('')).toBe('');
   });
 
   it('encodes user:pass format correctly', () => {

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import bcrypt from 'bcrypt';
 
 // Mock AdminCredential before importing basicAuth
 vi.mock('../../models/AdminCredential.js', () => ({
@@ -114,6 +115,19 @@ describe('basicAuth middleware', () => {
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({ username: 'admin' });
     expect(req.authRateLimiter.clearFailed).toHaveBeenCalled();
+  });
+
+  it('performs bcrypt compare even when user not found (timing attack resistance)', async () => {
+    const compareSpy = vi.spyOn(bcrypt, 'compare');
+    AdminCredential.findOne.mockResolvedValue(null);
+
+    const req = createReq(`Basic ${Buffer.from('nouser:pass').toString('base64')}`);
+    const res = createRes();
+    await basicAuth(req, res, next);
+
+    expect(res.statusCode).toBe(401);
+    expect(compareSpy).toHaveBeenCalled();
+    compareSpy.mockRestore();
   });
 
   it('handles DB error with 500', async () => {

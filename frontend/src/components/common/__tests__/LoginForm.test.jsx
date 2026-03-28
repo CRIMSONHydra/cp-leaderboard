@@ -37,9 +37,10 @@ describe('LoginForm', () => {
     });
   });
 
-  it('disables inputs when externalLoading is true', () => {
+  it('disables inputs and button when loading is true', () => {
     render(<LoginForm onLogin={vi.fn()} loading={true} />);
     expect(screen.getByLabelText('Username')).toBeDisabled();
     expect(screen.getByLabelText('Password')).toBeDisabled();
+    expect(screen.getByRole('button', { name: /verifying|login/i })).toBeDisabled();
   });
 });

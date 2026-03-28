@@ -140,10 +140,9 @@ describe('formatDate', () => {
     expect(formatDate(undefined)).toBe('Never');
   });
 
-  it('returns a non-empty string for valid date', () => {
+  it('returns locale string for valid date', () => {
     const result = formatDate('2024-01-15T12:00:00Z');
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
-    expect(result).not.toBe('Never');
+    const expected = new Date('2024-01-15T12:00:00Z').toLocaleString();
+    expect(result).toBe(expected);
   });
 });

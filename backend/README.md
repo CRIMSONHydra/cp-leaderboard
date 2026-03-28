@@ -256,10 +256,10 @@ Get leaderboard statistics including total users, average scores, and platform-s
     "totalUsers": 50,
     "avgAggregate": 2500.5,
     "maxAggregate": 4000,
-    "cfUsers": 45,
-    "acUsers": 40,
-    "lcUsers": 30,
-    "ccUsers": 25
+    "codeforcesUsers": 45,
+    "atcoderUsers": 40,
+    "leetcodeUsers": 30,
+    "codechefUsers": 25
   }
 }
 ```

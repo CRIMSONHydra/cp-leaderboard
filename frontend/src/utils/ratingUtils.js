@@ -67,9 +67,9 @@ export const getCodeChefRatingColor = (rating) => {
 
 // Platform color resolver registry — open for extension via the map
 const platformColorResolvers = {
-  codeforces: (rating) => getCodeforcesColor(rating),
-  atcoder: (rating) => getAtCoderColor(rating),
-  leetcode: (rating) => getLeetCodeColor(rating),
+  codeforces: getCodeforcesColor,
+  atcoder: getAtCoderColor,
+  leetcode: getLeetCodeColor,
   codechef: (rating, rank) => rank ? getCodeChefColor(rank) : getCodeChefRatingColor(rating)
 };
 

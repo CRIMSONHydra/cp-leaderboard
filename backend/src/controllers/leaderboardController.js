@@ -15,6 +15,13 @@ const getLeaderboard = async (req, res) => {
       });
     }
 
+    if (order !== 'asc' && order !== 'desc') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid order. Valid options: asc, desc'
+      });
+    }
+
     const dir = order === 'desc' ? -1 : 1;
     const platformSortOptions = Object.fromEntries(
       PLATFORMS.map(p => [p, { [`ratings.${p}.rating`]: dir }])

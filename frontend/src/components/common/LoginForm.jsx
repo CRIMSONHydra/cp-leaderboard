@@ -36,6 +36,7 @@ export default function LoginForm({ onLogin, loading: externalLoading }) {
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={isLoading}
+            autoComplete="username"
             autoFocus
           />
         </div>
@@ -48,6 +49,7 @@ export default function LoginForm({ onLogin, loading: externalLoading }) {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={isLoading}
+            autoComplete="current-password"
           />
         </div>
         {error && (

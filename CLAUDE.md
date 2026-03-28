@@ -91,7 +91,7 @@ pnpm validate:constants  # Verify shared constants consistency
 
 ### Backend Request Flow
 
-```
+```text
 Request → Rate Limiter → Auth Middleware (if protected) → Controller → Service → Response
 ```
 

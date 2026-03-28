@@ -116,19 +116,29 @@ describe('calculateAggregateScore', () => {
     expect(calculateAggregateScore(ratings)).toBe(20);
   });
 
+  it('skips platforms with rating 0 due to truthiness check', () => {
+    // rating: 0 is falsy, so calculateAggregateScore skips it
+    const ratings = {
+      codeforces: { rating: 0, error: null },
+      atcoder: { rating: 800, error: null }
+    };
+    // Only atcoder counts (normalized: 20), codeforces rating:0 is skipped
+    expect(calculateAggregateScore(ratings)).toBe(20);
+  });
+
   it('returns 0 for empty ratings', () => {
     expect(calculateAggregateScore({})).toBe(0);
   });
 
   it('rounds to nearest integer', () => {
-    // Use values that would produce a non-integer average
+    // codeforces 1300 → between 1200(20) and 1400(30): interpolation = 20 + (100/200)*10 = 25
+    // atcoder 600 → between 400(0) and 800(20): interpolation = 0 + (200/400)*20 = 10
+    // Average: (25 + 10) / 2 = 17.5 → rounds to 18
     const ratings = {
-      codeforces: { rating: 1000, error: null },  // normalized: 10
-      atcoder: { rating: 800, error: null }         // normalized: 20
+      codeforces: { rating: 1300, error: null },
+      atcoder: { rating: 600, error: null }
     };
-    // Average: 15, which is already integer
-    expect(typeof calculateAggregateScore(ratings)).toBe('number');
-    expect(Number.isInteger(calculateAggregateScore(ratings))).toBe(true);
+    expect(calculateAggregateScore(ratings)).toBe(18);
   });
 });
 

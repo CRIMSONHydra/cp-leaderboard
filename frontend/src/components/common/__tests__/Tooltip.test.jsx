@@ -46,4 +46,18 @@ describe('Tooltip', () => {
     render(<Tooltip content="Helpful info"><span>Hover me</span></Tooltip>);
     expect(screen.getByText('Helpful info')).toBeInTheDocument();
   });
+
+  it('tooltip shows on focus and hides on blur', () => {
+    render(<Tooltip content="Tooltip text"><span>Hover me</span></Tooltip>);
+    const wrapper = screen.getByText('Hover me').closest('.tooltip-wrapper');
+
+    fireEvent.focus(wrapper);
+    const tooltip = screen.getByRole('tooltip', { hidden: true });
+    expect(tooltip).toHaveAttribute('aria-hidden', 'false');
+    expect(tooltip).toHaveStyle({ display: 'block' });
+
+    fireEvent.blur(wrapper);
+    expect(tooltip).toHaveAttribute('aria-hidden', 'true');
+    expect(tooltip).toHaveStyle({ display: 'none' });
+  });
 });

@@ -20,6 +20,10 @@ describe('encodeBasicAuth', () => {
     expect(() => encodeBasicAuth('user', '')).toThrow('Password must be a non-empty string');
   });
 
+  it('throws for whitespace-only password', () => {
+    expect(() => encodeBasicAuth('user', '   ')).toThrow('Password must be a non-empty string');
+  });
+
   it('throws for non-string username', () => {
     expect(() => encodeBasicAuth(123, 'pass')).toThrow('Username must be a non-empty string');
   });

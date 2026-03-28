@@ -25,9 +25,10 @@ describe('generateOwnerId', () => {
     expect(id.startsWith('cron-')).toBe(true);
   });
 
-  it('contains process pid', () => {
+  it('has process pid as first segment', () => {
     const id = generateOwnerId();
-    expect(id).toContain(String(process.pid));
+    const parts = id.split('-');
+    expect(parts[0]).toBe(String(process.pid));
   });
 
   it('generates unique values on each call', () => {
