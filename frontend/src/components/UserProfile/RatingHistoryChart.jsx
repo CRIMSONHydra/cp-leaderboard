@@ -9,21 +9,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { PLATFORM_NAMES, PLATFORM_CHART_COLORS } from '../../constants/platforms';
 import './RatingHistoryChart.css';
-
-const PLATFORM_COLORS = {
-  codeforces: '#1890ff',
-  atcoder: '#52c41a',
-  leetcode: '#faad14',
-  codechef: '#722ed1'
-};
-
-const PLATFORM_NAMES = {
-  codeforces: 'Codeforces',
-  atcoder: 'AtCoder',
-  leetcode: 'LeetCode',
-  codechef: 'CodeChef'
-};
 
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -156,7 +143,7 @@ export default function RatingHistoryChart({ history, platforms }) {
                 type="monotone"
                 dataKey={platform}
                 name={PLATFORM_NAMES[platform]}
-                stroke={PLATFORM_COLORS[platform]}
+                stroke={PLATFORM_CHART_COLORS[platform]}
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 5 }}
@@ -180,7 +167,7 @@ function SingleChartTooltipContent({ active, payload, platform }) {
     <div className="chart-tooltip">
       <p className="tooltip-date">{new Date(data.date).toLocaleDateString()}</p>
       <p className="tooltip-contest">{data.contestName}</p>
-      <p style={{ color: PLATFORM_COLORS[platform] }}>
+      <p style={{ color: PLATFORM_CHART_COLORS[platform] }}>
         Rating: {data.rating}
         {data.change !== 0 && (
           <span className={data.change > 0 ? 'positive' : 'negative'}>
@@ -235,7 +222,7 @@ export function SinglePlatformChart({ history, platform }) {
 
   return (
     <div className="single-chart-container">
-      <h4 style={{ color: PLATFORM_COLORS[platform] }}>
+      <h4 style={{ color: PLATFORM_CHART_COLORS[platform] }}>
         {PLATFORM_NAMES[platform]}
       </h4>
       <ResponsiveContainer width="100%" height={200}>
@@ -262,9 +249,9 @@ export function SinglePlatformChart({ history, platform }) {
           <Line
             type="monotone"
             dataKey="rating"
-            stroke={PLATFORM_COLORS[platform]}
+            stroke={PLATFORM_CHART_COLORS[platform]}
             strokeWidth={2}
-            dot={{ r: 3, fill: PLATFORM_COLORS[platform] }}
+            dot={{ r: 3, fill: PLATFORM_CHART_COLORS[platform] }}
             activeDot={{ r: 6 }}
           />
         </LineChart>
@@ -276,7 +263,7 @@ export function SinglePlatformChart({ history, platform }) {
           <>
             <span className="ext-date">{new Date(tooltipInfo.date).toLocaleDateString()}</span>
             <span className="ext-contest">{tooltipInfo.contestName}</span>
-            <span className="ext-rating" style={{ color: PLATFORM_COLORS[platform] }}>
+            <span className="ext-rating" style={{ color: PLATFORM_CHART_COLORS[platform] }}>
               {tooltipInfo.rating}
               {tooltipInfo.change !== 0 && (
                 <span className={tooltipInfo.change > 0 ? 'positive' : 'negative'}>

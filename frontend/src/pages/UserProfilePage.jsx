@@ -1,51 +1,17 @@
-import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PLATFORMS } from '../constants/platforms';
-import { api } from '../services/api';
+import { PLATFORMS, PLATFORM_NAMES, PLATFORM_URLS, PLATFORM_CHART_COLORS } from '../constants/platforms';
 import { getPlatformColor } from '../utils/ratingUtils';
+import { useUserProfile } from '../hooks/useUserProfile';
 import RatingHistoryChart, { SinglePlatformChart } from '../components/UserProfile/RatingHistoryChart';
 import Tooltip from '../components/common/Tooltip';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
 import './UserProfilePage.css';
 
-const PLATFORM_INFO = {
-  codeforces: { name: 'Codeforces', color: '#1890ff', url: 'https://codeforces.com/profile/' },
-  atcoder: { name: 'AtCoder', color: '#52c41a', url: 'https://atcoder.jp/users/' },
-  leetcode: { name: 'LeetCode', color: '#faad14', url: 'https://leetcode.com/u/' },
-  codechef: { name: 'CodeChef', color: '#722ed1', url: 'https://www.codechef.com/users/' }
-};
-
 export default function UserProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [history, setHistory] = useState(null);
-
-  useEffect(() => {
-    async function fetchUserData() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await api.getUserHistory(id);
-        if (response.success) {
-          setUserData(response.data.user);
-          setHistory(response.data.history);
-        } else {
-          setError(response.error || 'Failed to load user data');
-        }
-      } catch (err) {
-        setError(err.message || 'Failed to load user data');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchUserData();
-  }, [id]);
+  const { loading, error, userData, history } = useUserProfile(id);
 
   if (loading) {
     return (
@@ -116,21 +82,20 @@ export default function UserProfilePage() {
             </thead>
             <tbody>
               {PLATFORMS.map(platform => {
-                const info = PLATFORM_INFO[platform];
                 const handle = userData.handles?.[platform];
                 const rating = userData.ratings?.[platform];
-                
+
                 return (
                   <tr key={platform} className={handle ? '' : 'no-handle'}>
                     <td>
-                      <span className="platform-name" style={{ color: info.color }}>
-                        {info.name}
+                      <span className="platform-name" style={{ color: PLATFORM_CHART_COLORS[platform] }}>
+                        {PLATFORM_NAMES[platform]}
                       </span>
                     </td>
                     <td>
                       {handle ? (
                         <a
-                          href={`${info.url}${handle}`}
+                          href={`${PLATFORM_URLS[platform]}${handle}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="handle-link"

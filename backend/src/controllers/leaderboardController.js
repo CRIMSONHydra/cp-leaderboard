@@ -7,13 +7,14 @@ const getLeaderboard = async (req, res) => {
   try {
     const { sortBy = 'aggregate', order = 'desc' } = req.query;
 
+    const dir = order === 'desc' ? -1 : 1;
+    const platformSortOptions = Object.fromEntries(
+      PLATFORMS.map(p => [p, { [`ratings.${p}.rating`]: dir }])
+    );
     const sortOptions = {
-      aggregate: { aggregateScore: order === 'desc' ? -1 : 1 },
-      codeforces: { 'ratings.codeforces.rating': order === 'desc' ? -1 : 1 },
-      atcoder: { 'ratings.atcoder.rating': order === 'desc' ? -1 : 1 },
-      leetcode: { 'ratings.leetcode.rating': order === 'desc' ? -1 : 1 },
-      codechef: { 'ratings.codechef.rating': order === 'desc' ? -1 : 1 },
-      name: { name: order === 'desc' ? -1 : 1 }
+      aggregate: { aggregateScore: dir },
+      name: { name: dir },
+      ...platformSortOptions
     };
 
     const users = await User.find({ isActive: true })
@@ -82,6 +83,14 @@ const getUserDetails = async (req, res) => {
 // GET /api/leaderboard/stats - Get leaderboard statistics
 const getStats = async (req, res) => {
   try {
+    // Build platform user counts dynamically from PLATFORMS
+    const platformUserCounts = Object.fromEntries(
+      PLATFORMS.map(p => [
+        `${p}Users`,
+        { $sum: { $cond: [{ $and: [{ $ne: [`$ratings.${p}.rating`, null] }, { $gt: [`$ratings.${p}.rating`, 0] }] }, 1, 0] } }
+      ])
+    );
+
     const stats = await User.aggregate([
       { $match: { isActive: true } },
       {
@@ -90,33 +99,21 @@ const getStats = async (req, res) => {
           totalUsers: { $sum: 1 },
           avgAggregate: { $avg: '$aggregateScore' },
           maxAggregate: { $max: '$aggregateScore' },
-          cfUsers: {
-            $sum: { $cond: [{ $and: [{ $ne: ['$ratings.codeforces.rating', null] }, { $gt: ['$ratings.codeforces.rating', 0] }] }, 1, 0] }
-          },
-          acUsers: {
-            $sum: { $cond: [{ $and: [{ $ne: ['$ratings.atcoder.rating', null] }, { $gt: ['$ratings.atcoder.rating', 0] }] }, 1, 0] }
-          },
-          lcUsers: {
-            $sum: { $cond: [{ $and: [{ $ne: ['$ratings.leetcode.rating', null] }, { $gt: ['$ratings.leetcode.rating', 0] }] }, 1, 0] }
-          },
-          ccUsers: {
-            $sum: { $cond: [{ $and: [{ $ne: ['$ratings.codechef.rating', null] }, { $gt: ['$ratings.codechef.rating', 0] }] }, 1, 0] }
-          }
+          ...platformUserCounts
         }
       }
     ]);
 
+    const defaultStats = {
+      totalUsers: 0,
+      avgAggregate: 0,
+      maxAggregate: 0,
+      ...Object.fromEntries(PLATFORMS.map(p => [`${p}Users`, 0]))
+    };
+
     res.json({
       success: true,
-      data: stats[0] || {
-        totalUsers: 0,
-        avgAggregate: 0,
-        maxAggregate: 0,
-        cfUsers: 0,
-        acUsers: 0,
-        lcUsers: 0,
-        ccUsers: 0
-      }
+      data: stats[0] || defaultStats
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

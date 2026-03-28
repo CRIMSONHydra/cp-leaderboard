@@ -1,18 +1,11 @@
 import { useLeaderboard } from '../../hooks/useLeaderboard';
-import { PLATFORMS } from '../../constants/platforms';
+import { PLATFORMS, PLATFORM_NAMES } from '../../constants/platforms';
 import LeaderboardRow from './LeaderboardRow';
 import SortButton from '../common/SortButton';
 import Tooltip from '../common/Tooltip';
 import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import './LeaderboardTable.css';
-const PLATFORM_LABELS = {
-  codeforces: 'Codeforces',
-  atcoder: 'AtCoder',
-  leetcode: 'LeetCode',
-  codechef: 'CodeChef',
-  aggregate: 'Score'
-};
 
 export default function LeaderboardTable() {
   const { data, loading, error, sortBy, sortOrder, handleSort, refetch } = useLeaderboard();
@@ -44,7 +37,7 @@ export default function LeaderboardTable() {
             {PLATFORMS.map(platform => (
               <th key={platform} className="rating-col">
                 <SortButton
-                  label={PLATFORM_LABELS[platform]}
+                  label={PLATFORM_NAMES[platform]}
                   active={sortBy === platform}
                   direction={sortBy === platform ? sortOrder : null}
                   onClick={() => handleSort(platform)}

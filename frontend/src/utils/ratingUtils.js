@@ -1,3 +1,5 @@
+import { PLATFORM_URLS } from '../constants/platforms';
+
 // Codeforces rating colors (official)
 export const getCodeforcesColor = (rating) => {
   if (!rating) return '#808080';
@@ -63,29 +65,22 @@ export const getCodeChefRatingColor = (rating) => {
   return '#666666'; // 1★ Gray
 };
 
+// Platform color resolver registry — open for extension via the map
+const platformColorResolvers = {
+  codeforces: (rating) => getCodeforcesColor(rating),
+  atcoder: (rating) => getAtCoderColor(rating),
+  leetcode: (rating) => getLeetCodeColor(rating),
+  codechef: (rating, rank) => rank ? getCodeChefColor(rank) : getCodeChefRatingColor(rating)
+};
+
 export const getPlatformColor = (platform, rating, rank) => {
-  switch (platform) {
-    case 'codeforces':
-      return getCodeforcesColor(rating);
-    case 'atcoder':
-      return getAtCoderColor(rating);
-    case 'leetcode':
-      return getLeetCodeColor(rating);
-    case 'codechef':
-      return rank ? getCodeChefColor(rank) : getCodeChefRatingColor(rating);
-    default:
-      return '#808080';
-  }
+  const resolver = platformColorResolvers[platform];
+  return resolver ? resolver(rating, rank) : '#808080';
 };
 
 export const getPlatformUrl = (platform, handle) => {
-  const urls = {
-    codeforces: `https://codeforces.com/profile/${handle}`,
-    atcoder: `https://atcoder.jp/users/${handle}`,
-    leetcode: `https://leetcode.com/u/${handle}`,
-    codechef: `https://www.codechef.com/users/${handle}`
-  };
-  return urls[platform] || '#';
+  const prefix = PLATFORM_URLS[platform];
+  return prefix ? `${prefix}${handle}` : '#';
 };
 
 export const formatDate = (dateString) => {

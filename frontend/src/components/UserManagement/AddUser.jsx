@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
+import { PLATFORMS, PLATFORM_NAMES } from '../../constants/platforms';
 import './AddUser.css';
+
+const emptyHandles = () => Object.fromEntries(PLATFORMS.map(p => [p, '']));
 
 export default function AddUser() {
   const navigate = useNavigate();
@@ -15,12 +18,7 @@ export default function AddUser() {
   
   const [formData, setFormData] = useState({
     name: '',
-    handles: {
-      codeforces: '',
-      atcoder: '',
-      codechef: '',
-      leetcode: ''
-    }
+    handles: emptyHandles()
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -74,12 +72,7 @@ export default function AddUser() {
       // Reset form
       setFormData({
         name: '',
-        handles: {
-          codeforces: '',
-          atcoder: '',
-          codechef: '',
-          leetcode: ''
-        }
+        handles: emptyHandles()
       });
 
       // Clear success message after 3 seconds
@@ -122,54 +115,20 @@ export default function AddUser() {
 
           <div className="handles-section">
             <h3>Platform Handles (Optional)</h3>
-            <div className="form-group">
-              <label htmlFor="handle-codeforces">Codeforces</label>
-              <input
-                type="text"
-                id="handle-codeforces"
-                name="handle-codeforces"
-                value={formData.handles.codeforces}
-                onChange={handleInputChange}
-                disabled={loading}
-                placeholder="e.g., tourist"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="handle-atcoder">AtCoder</label>
-              <input
-                type="text"
-                id="handle-atcoder"
-                name="handle-atcoder"
-                value={formData.handles.atcoder}
-                onChange={handleInputChange}
-                disabled={loading}
-                placeholder="e.g., tourist"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="handle-codechef">CodeChef</label>
-              <input
-                type="text"
-                id="handle-codechef"
-                name="handle-codechef"
-                value={formData.handles.codechef}
-                onChange={handleInputChange}
-                disabled={loading}
-                placeholder="e.g., tourist"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="handle-leetcode">LeetCode</label>
-              <input
-                type="text"
-                id="handle-leetcode"
-                name="handle-leetcode"
-                value={formData.handles.leetcode}
-                onChange={handleInputChange}
-                disabled={loading}
-                placeholder="e.g., tourist"
-              />
-            </div>
+            {PLATFORMS.map(platform => (
+              <div className="form-group" key={platform}>
+                <label htmlFor={`handle-${platform}`}>{PLATFORM_NAMES[platform]}</label>
+                <input
+                  type="text"
+                  id={`handle-${platform}`}
+                  name={`handle-${platform}`}
+                  value={formData.handles[platform]}
+                  onChange={handleInputChange}
+                  disabled={loading}
+                  placeholder="e.g., tourist"
+                />
+              </div>
+            ))}
           </div>
         </div>
 
