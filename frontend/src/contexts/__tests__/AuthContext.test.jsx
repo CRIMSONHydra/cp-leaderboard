@@ -1,13 +1,27 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../AuthContext';
 
+// Mock the auth API module
+vi.mock('../../services/api', () => ({
+  authApi: {
+    getMe: vi.fn(),
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn()
+  }
+}));
+
+import { authApi } from '../../services/api';
+
 function TestComponent() {
-  const { login, logout, isAuthenticated, getCredentials } = useAuth();
+  const { account, loading, login, logout, isAuthenticated, getCredentials } = useAuth();
 
   return (
     <div>
+      <span data-testid="loading">{loading ? 'loading' : 'ready'}</span>
       <span data-testid="auth-status">{isAuthenticated() ? 'authenticated' : 'not-authenticated'}</span>
+      <span data-testid="account">{JSON.stringify(account)}</span>
       <span data-testid="credentials">{JSON.stringify(getCredentials())}</span>
       <button onClick={() => login('admin', 'secret')}>Login</button>
       <button onClick={() => logout()}>Logout</button>
@@ -16,66 +30,91 @@ function TestComponent() {
 }
 
 describe('AuthContext', () => {
-  it('is not authenticated initially', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Default: getMe fails (not logged in)
+    authApi.getMe.mockRejectedValue(new Error('Not authenticated'));
+  });
+
+  it('starts loading and resolves to not authenticated', async () => {
     render(
       <AuthProvider>
         <TestComponent />
       </AuthProvider>
     );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+    });
+
     expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
     expect(screen.getByTestId('credentials')).toHaveTextContent('null');
   });
 
-  it('becomes authenticated after login', () => {
+  it('restores session if getMe succeeds', async () => {
+    authApi.getMe.mockResolvedValue({
+      data: { id: '123', username: 'admin', email: 'a@b.com' }
+    });
+
     render(
       <AuthProvider>
         <TestComponent />
       </AuthProvider>
     );
 
-    act(() => {
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
+    });
+
+    expect(screen.getByTestId('account')).toHaveTextContent('"username":"admin"');
+  });
+
+  it('becomes authenticated after login', async () => {
+    authApi.login.mockResolvedValue({
+      data: { id: '123', username: 'admin', email: 'a@b.com' }
+    });
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading')).toHaveTextContent('ready');
+    });
+
+    await act(async () => {
       screen.getByText('Login').click();
     });
 
     expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
   });
 
-  it('returns credentials after login', () => {
+  it('is not authenticated after logout', async () => {
+    authApi.getMe.mockResolvedValue({
+      data: { id: '123', username: 'admin', email: 'a@b.com' }
+    });
+    authApi.logout.mockResolvedValue({ success: true });
+
     render(
       <AuthProvider>
         <TestComponent />
       </AuthProvider>
     );
 
-    act(() => {
-      screen.getByText('Login').click();
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
     });
 
-    expect(screen.getByTestId('credentials')).toHaveTextContent(
-      JSON.stringify({ username: 'admin', password: 'secret' })
-    );
-  });
-
-  it('is not authenticated after logout', () => {
-    render(
-      <AuthProvider>
-        <TestComponent />
-      </AuthProvider>
-    );
-
-    act(() => {
-      screen.getByText('Login').click();
-    });
-    expect(screen.getByTestId('auth-status')).toHaveTextContent('authenticated');
-
-    act(() => {
+    await act(async () => {
       screen.getByText('Logout').click();
     });
+
     expect(screen.getByTestId('auth-status')).toHaveTextContent('not-authenticated');
   });
 
   it('throws when useAuth is used outside AuthProvider', () => {
-    // Suppress console.error for expected error
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(() => render(<TestComponent />)).toThrow(

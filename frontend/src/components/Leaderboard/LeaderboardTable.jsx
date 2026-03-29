@@ -1,4 +1,3 @@
-import { useLeaderboard } from '../../hooks/useLeaderboard';
 import { PLATFORMS, PLATFORM_NAMES } from '../../constants/platforms';
 import LeaderboardRow from './LeaderboardRow';
 import SortButton from '../common/SortButton';
@@ -7,11 +6,9 @@ import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import './LeaderboardTable.css';
 
-export default function LeaderboardTable() {
-  const { data, loading, error, sortBy, sortOrder, handleSort, refetch } = useLeaderboard();
-
+export default function LeaderboardTable({ data, loading, error, sortBy, sortOrder, onSort, onRetry }) {
   if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} onRetry={refetch} />;
+  if (error) return <ErrorMessage message={error} onRetry={onRetry} />;
   if (data.length === 0) {
     return (
       <div className="empty-state">
@@ -31,7 +28,7 @@ export default function LeaderboardTable() {
                 label="Name"
                 active={sortBy === 'name'}
                 direction={sortBy === 'name' ? sortOrder : null}
-                onClick={() => handleSort('name')}
+                onClick={() => onSort('name')}
               />
             </th>
             {PLATFORMS.map(platform => (
@@ -40,7 +37,7 @@ export default function LeaderboardTable() {
                   label={PLATFORM_NAMES[platform]}
                   active={sortBy === platform}
                   direction={sortBy === platform ? sortOrder : null}
-                  onClick={() => handleSort(platform)}
+                  onClick={() => onSort(platform)}
                 />
               </th>
             ))}
@@ -50,10 +47,10 @@ export default function LeaderboardTable() {
                   label="Aggregate"
                   active={sortBy === 'aggregate'}
                   direction={sortBy === 'aggregate' ? sortOrder : null}
-                  onClick={() => handleSort('aggregate')}
+                  onClick={() => onSort('aggregate')}
                 />
                 <Tooltip content="Normalized aggregate score (0-100) calculated from all platform ratings. Higher ratings on each platform contribute to a higher aggregate score.">
-                  <span className="info-icon" aria-label="Information about aggregate score">ⓘ</span>
+                  <span className="info-icon" aria-label="Information about aggregate score">i</span>
                 </Tooltip>
               </div>
             </th>

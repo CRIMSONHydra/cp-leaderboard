@@ -1,43 +1,61 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { authApi } from '../services/api';
 
 const AuthContext = createContext(null);
 
-/**
- * Authentication Context Provider
- * Stores credentials in memory only - never persists to browser storage
- */
 export function AuthProvider({ children }) {
-  const [credentials, setCredentials] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((username, password) => {
-    // Store credentials in memory only
-    setCredentials({ username, password });
+  // On mount, check if we have a valid session via cookies
+  useEffect(() => {
+    authApi.getMe()
+      .then(res => setAccount(res.data))
+      .catch(() => setAccount(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const logout = useCallback(() => {
-    // Clear in-memory credentials
-    setCredentials(null);
+  const login = useCallback(async (loginId, password) => {
+    const res = await authApi.login(loginId, password);
+    setAccount(res.data);
+    return res.data;
+  }, []);
+
+  const register = useCallback(async (username, email, password) => {
+    const res = await authApi.register(username, email, password);
+    setAccount(res.data);
+    return res.data;
+  }, []);
+
+  const logout = useCallback(async () => {
+    await authApi.logout();
+    setAccount(null);
   }, []);
 
   const isAuthenticated = useCallback(() => {
-    return credentials !== null;
-  }, [credentials]);
+    return account !== null;
+  }, [account]);
 
+  // Legacy compatibility — returns null for new JWT auth
   const getCredentials = useCallback(() => {
-    return credentials;
-  }, [credentials]);
+    return null;
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ login, logout, isAuthenticated, getCredentials }}>
+    <AuthContext.Provider value={{
+      account,
+      loading,
+      login,
+      register,
+      logout,
+      isAuthenticated,
+      getCredentials
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-/**
- * Hook to use authentication context
- * @returns {object} Authentication context with login, logout, isAuthenticated, getCredentials
- */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -46,4 +64,3 @@ export function useAuth() {
   }
   return context;
 }
-

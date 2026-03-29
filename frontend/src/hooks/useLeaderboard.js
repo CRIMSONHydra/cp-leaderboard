@@ -1,49 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import { useSortedTable } from './useSortedTable';
 
 export function useLeaderboard() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sortBy, setSortBy] = useState('aggregate');
-  const [sortOrder, setSortOrder] = useState('desc');
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await api.getLeaderboard(sortBy, sortOrder);
-      setData(result.data || []);
-    } catch (err) {
-      setError(err.message);
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [sortBy, sortOrder]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleSort = (column) => {
-    if (sortBy === column) {
-      setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
-    } else {
-      setSortBy(column);
-      setSortOrder('desc');
-    }
-  };
-
-  return {
-    data,
-    loading,
-    error,
-    sortBy,
-    sortOrder,
-    handleSort,
-    refetch: fetchData
-  };
+  const fetchFn = useCallback(
+    (sortBy, sortOrder) => api.getLeaderboard(sortBy, sortOrder),
+    []
+  );
+  return useSortedTable(fetchFn);
 }
 
 export function useUpdateStatus() {

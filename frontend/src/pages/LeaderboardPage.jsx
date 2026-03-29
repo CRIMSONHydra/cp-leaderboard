@@ -1,11 +1,12 @@
 import { PLATFORM_NAMES } from '../constants/platforms';
 import Header from '../components/Layout/Header';
 import LeaderboardTable from '../components/Leaderboard/LeaderboardTable';
-import { useUpdateStatus, useStats } from '../hooks/useLeaderboard';
+import { useLeaderboard, useUpdateStatus, useStats } from '../hooks/useLeaderboard';
 
 export default function LeaderboardPage() {
   const { status } = useUpdateStatus();
   const { stats } = useStats();
+  const { data, loading, error, sortBy, sortOrder, handleSort, refetch } = useLeaderboard();
 
   return (
     <div className="app">
@@ -14,7 +15,15 @@ export default function LeaderboardPage() {
         stats={stats}
       />
       <main className="main-content">
-        <LeaderboardTable />
+        <LeaderboardTable
+          data={data}
+          loading={loading}
+          error={error}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          onRetry={refetch}
+        />
       </main>
       <footer className="app-footer">
         <p>Ratings update every 12 hours</p>
@@ -25,4 +34,3 @@ export default function LeaderboardPage() {
     </div>
   );
 }
-

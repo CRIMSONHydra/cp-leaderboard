@@ -16,5 +16,21 @@ services:
         generateValue: true
       - key: BOOTSTRAP_SECRET
         generateValue: true
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        sync: false  # Set manually (e.g., https://cp-leaderboard.onrender.com)
+      - key: SMTP_HOST
+        sync: false  # Set manually for password reset emails
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
     autoDeploy: false
     healthCheckPath: /api/health
