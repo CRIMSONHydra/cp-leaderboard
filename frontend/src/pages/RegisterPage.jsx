@@ -35,7 +35,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(username, email, password);
+      await register(username.trim(), email.trim(), password);
       navigate('/spaces', { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed');

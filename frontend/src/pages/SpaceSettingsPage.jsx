@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { spacesApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useSpace } from '../hooks/useSpace';
@@ -22,9 +22,12 @@ export default function SpaceSettingsPage() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
+  const seededSpaceIdRef = useRef(null);
 
+  // Only seed form fields when the space identity changes, not on every object update
   useEffect(() => {
-    if (space) {
+    if (space && space._id !== seededSpaceIdRef.current) {
+      seededSpaceIdRef.current = space._id;
       setName(space.name);
       setDescription(space.description || '');
     }
@@ -37,8 +40,7 @@ export default function SpaceSettingsPage() {
   const isAdmin = space?.myRole === 'admin';
 
   if (!isAdmin) {
-    navigate(`/spaces/${spaceId}`, { replace: true });
-    return null;
+    return <Navigate to={`/spaces/${spaceId}`} replace />;
   }
 
   const handleSave = async (e) => {

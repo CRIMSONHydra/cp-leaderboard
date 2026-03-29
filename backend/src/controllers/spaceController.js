@@ -93,21 +93,17 @@ const getSpace = async (req, res) => {
 const updateSpace = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const updates = {};
+    const space = req.space;
 
     if (name !== undefined) {
       if (!name.trim()) {
         return res.status(400).json({ success: false, error: 'Space name cannot be empty' });
       }
-      updates.name = name.trim();
+      space.name = name.trim();
     }
-    if (description !== undefined) updates.description = description.trim();
+    if (description !== undefined) space.description = description.trim();
 
-    const space = await Space.findByIdAndUpdate(
-      req.params.spaceId,
-      { $set: updates },
-      { returnDocument: 'after' }
-    );
+    await space.save();
 
     res.json({ success: true, data: space });
   } catch (error) {
@@ -228,7 +224,7 @@ const getMembers = async (req, res) => {
 const updateMemberRole = async (req, res) => {
   try {
     const { role } = req.body;
-    const { spaceId, accountId } = req.params;
+    const { accountId } = req.params;
 
     if (!['admin', 'viewer'].includes(role)) {
       return res.status(400).json({ success: false, error: 'Role must be admin or viewer' });
@@ -257,7 +253,7 @@ const updateMemberRole = async (req, res) => {
 
 const removeMember = async (req, res) => {
   try {
-    const { spaceId, accountId } = req.params;
+    const { accountId } = req.params;
     const space = req.space;
 
     if (space.owner.toString() === accountId) {
