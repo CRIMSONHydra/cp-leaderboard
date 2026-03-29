@@ -78,12 +78,12 @@ export default function UserProfilePage() {
         </div>
         <div className="aggregate-badge">
           <span className="aggregate-label">
-            Aggregate Score
-            <Tooltip content="Normalized aggregate score calculated from all platform ratings. Each platform rating is converted to a 0-100 scale based on skill tiers, then averaged.">
+            Star Rating
+            <Tooltip content="Star rating calculated from all platform ratings. Each platform rating is normalized based on skill tiers, then averaged and converted to a 1-10 star scale.">
               <span className="info-badge">ⓘ</span>
             </Tooltip>
           </span>
-          <span className="aggregate-value">{userData.aggregateScore || 0}/100</span>
+          <span className="aggregate-value">{userData.aggregateScore ? `★ ${userData.aggregateScore.toFixed(1)}/10` : 'Unrated'}</span>
         </div>
       </div>
 

@@ -112,7 +112,7 @@ function SearchExistingTab({ spaceId, onAdded }) {
             <div key={user._id} className="search-result-item">
               <div className="search-result-info">
                 <strong>{user.name}</strong>
-                <span className="search-result-score">Score: {user.aggregateScore?.toFixed(1) || 'N/A'}</span>
+                <span className="search-result-score">{user.aggregateScore ? `★ ${user.aggregateScore.toFixed(1)}` : 'N/A'}</span>
               </div>
               <button
                 onClick={() => handleAdd(user._id)}
