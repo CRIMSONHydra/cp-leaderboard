@@ -35,7 +35,7 @@ export default function AdminProtectedRoute({ children }) {
         >
           Back to Leaderboard
         </button>
-        <button onClick={handleLogout} className="btn-logout">
+        <button type="button" onClick={handleLogout} className="btn-logout">
           Logout ({credentials.username})
         </button>
       </div>

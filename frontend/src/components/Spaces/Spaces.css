@@ -477,20 +477,20 @@
   gap: 0.5rem;
 }
 
-.btn-accept {
-  background: #27ae60 !important;
+.invitation-actions .btn-accept {
+  background: #27ae60;
 }
 
-.btn-accept:hover:not(:disabled) {
-  background: #219a52 !important;
+.invitation-actions .btn-accept:hover:not(:disabled) {
+  background: #219a52;
 }
 
-.btn-decline {
-  background: #95a5a6 !important;
+.invitation-actions .btn-decline {
+  background: #95a5a6;
 }
 
-.btn-decline:hover:not(:disabled) {
-  background: #7f8c8d !important;
+.invitation-actions .btn-decline:hover:not(:disabled) {
+  background: #7f8c8d;
 }
 
 /* Invite modal extras */

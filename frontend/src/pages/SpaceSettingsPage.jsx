@@ -25,6 +25,7 @@ export default function SpaceSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [invitationsKey, setInvitationsKey] = useState(0);
   const seededSpaceIdRef = useRef(null);
 
   // Only seed form fields when the space identity changes, not on every object update
@@ -167,14 +168,14 @@ export default function SpaceSettingsPage() {
           onRoleChange={handleRoleChange}
           onRemove={handleRemoveMember}
         />
-        <SpaceInvitationsList spaceId={spaceId} />
+        <SpaceInvitationsList key={invitationsKey} spaceId={spaceId} />
       </section>
 
       {showInviteModal && (
         <InviteMemberModal
           spaceId={spaceId}
           onClose={() => setShowInviteModal(false)}
-          onInvited={() => {}}
+          onInvited={() => setInvitationsKey(k => k + 1)}
         />
       )}
 

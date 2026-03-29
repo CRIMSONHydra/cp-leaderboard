@@ -1,7 +1,12 @@
+import mongoose from 'mongoose';
 import Account from '../models/Account.js';
 import Space from '../models/Space.js';
 import SpaceInvitation from '../models/SpaceInvitation.js';
 import { sendSpaceInviteEmail } from '../services/emailService.js';
+
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
 
 const sendInvitation = async (req, res) => {
   try {
@@ -99,11 +104,20 @@ const acceptInvitation = async (req, res) => {
   try {
     const { invitationId } = req.params;
 
-    const invitation = await SpaceInvitation.findOne({
-      _id: invitationId,
-      invitedAccount: req.account.id,
-      status: 'pending'
-    });
+    if (!isValidObjectId(invitationId)) {
+      return res.status(404).json({ success: false, error: 'Invitation not found' });
+    }
+
+    // Atomically claim the invitation (pending -> accepted) to prevent races
+    const invitation = await SpaceInvitation.findOneAndUpdate(
+      {
+        _id: invitationId,
+        invitedAccount: req.account.id,
+        status: 'pending'
+      },
+      { status: 'accepted' },
+      { returnDocument: 'after' }
+    );
 
     if (!invitation) {
       return res.status(404).json({ success: false, error: 'Invitation not found' });
@@ -121,13 +135,10 @@ const acceptInvitation = async (req, res) => {
     );
 
     if (!result) {
-      invitation.status = 'declined';
-      await invitation.save();
+      // Revert invitation status
+      await SpaceInvitation.updateOne({ _id: invitationId }, { status: 'declined' });
       return res.status(409).json({ success: false, error: 'Already a member or space no longer exists' });
     }
-
-    invitation.status = 'accepted';
-    await invitation.save();
 
     res.json({
       success: true,
@@ -142,6 +153,10 @@ const acceptInvitation = async (req, res) => {
 const declineInvitation = async (req, res) => {
   try {
     const { invitationId } = req.params;
+
+    if (!isValidObjectId(invitationId)) {
+      return res.status(404).json({ success: false, error: 'Invitation not found' });
+    }
 
     const invitation = await SpaceInvitation.findOneAndUpdate(
       {
@@ -183,6 +198,10 @@ const getSpaceInvitations = async (req, res) => {
 
 const cancelInvitation = async (req, res) => {
   try {
+    if (!isValidObjectId(req.params.invitationId)) {
+      return res.status(404).json({ success: false, error: 'Pending invitation not found' });
+    }
+
     const result = await SpaceInvitation.findOneAndDelete({
       _id: req.params.invitationId,
       space: req.params.spaceId,
@@ -211,10 +230,18 @@ const searchAccounts = async (req, res) => {
 
     const memberAccountIds = space.members.map(m => m.account);
 
+    // Also exclude accounts with pending invitations
+    const pendingAccountIds = await SpaceInvitation.distinct('invitedAccount', {
+      space: space._id,
+      status: 'pending'
+    });
+
+    const excludeIds = [...memberAccountIds, ...pendingAccountIds];
+
     const escaped = email.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const accounts = await Account.find({
       email: new RegExp(escaped, 'i'),
-      _id: { $nin: memberAccountIds }
+      _id: { $nin: excludeIds }
     })
       .select('username email')
       .limit(10)

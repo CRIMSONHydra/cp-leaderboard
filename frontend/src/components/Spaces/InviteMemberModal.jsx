@@ -70,6 +70,7 @@ export default function InviteMemberModal({ spaceId, onClose, onInvited }) {
       setEmail('');
       setSelectedAccount(null);
       setResults([]);
+      setRole('viewer');
       onInvited();
     } catch (err) {
       setError(err.message);

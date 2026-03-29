@@ -32,7 +32,10 @@ export function useSpaceInvitations(spaceId) {
   const [error, setError] = useState(null);
 
   const fetchInvitations = useCallback(async () => {
-    if (!spaceId) return;
+    if (!spaceId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
