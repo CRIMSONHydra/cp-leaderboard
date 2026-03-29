@@ -5,29 +5,44 @@ import './Spaces.css';
 
 export default function AddUserToSpace({ spaceId, onAdded }) {
   const [activeTab, setActiveTab] = useState('search');
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="add-user-to-space">
-      <h3>Add User to Space</h3>
-      <div className="tab-bar">
-        <button
-          className={`tab-btn ${activeTab === 'search' ? 'active' : ''}`}
-          onClick={() => setActiveTab('search')}
-        >
-          Search Existing
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'create' ? 'active' : ''}`}
-          onClick={() => setActiveTab('create')}
-        >
-          Add New
-        </button>
-      </div>
+    <div className="track-user-section">
+      <button
+        type="button"
+        className="track-user-toggle"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? 'Hide' : 'Track a Competitive Programmer'}
+      </button>
 
-      {activeTab === 'search' ? (
-        <SearchExistingTab spaceId={spaceId} onAdded={onAdded} />
-      ) : (
-        <CreateNewTab spaceId={spaceId} onAdded={onAdded} />
+      {expanded && (
+        <div className="track-user-panel">
+          <p className="track-user-hint">
+            Add a competitive programmer to track their ratings in this space. This is different from inviting members — tracked users are CP profiles, not accounts.
+          </p>
+          <div className="tab-bar">
+            <button
+              className={`tab-btn ${activeTab === 'search' ? 'active' : ''}`}
+              onClick={() => setActiveTab('search')}
+            >
+              Search Existing
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'create' ? 'active' : ''}`}
+              onClick={() => setActiveTab('create')}
+            >
+              Add New
+            </button>
+          </div>
+
+          {activeTab === 'search' ? (
+            <SearchExistingTab spaceId={spaceId} onAdded={onAdded} />
+          ) : (
+            <CreateNewTab spaceId={spaceId} onAdded={onAdded} />
+          )}
+        </div>
       )}
     </div>
   );
@@ -102,7 +117,7 @@ function SearchExistingTab({ spaceId, onAdded }) {
                 className="btn btn-small"
                 disabled={adding === user._id}
               >
-                {adding === user._id ? 'Adding...' : 'Add'}
+                {adding === user._id ? 'Adding...' : 'Track'}
               </button>
             </div>
           ))}
@@ -150,9 +165,9 @@ function CreateNewTab({ spaceId, onAdded }) {
       const res = await spacesApi.createAndTrackUser(spaceId, userData);
 
       if (res.deduplicated) {
-        setSuccess(`Found existing user "${res.data.name}" with matching handles — added to space.`);
+        setSuccess(`Found existing profile "${res.data.name}" with matching handles — now tracked in this space.`);
       } else {
-        setSuccess(`Created and added "${res.data.name}" to space. Ratings are being fetched.`);
+        setSuccess(`Created "${res.data.name}" and started tracking ratings.`);
       }
 
       setName('');
@@ -177,7 +192,7 @@ function CreateNewTab({ spaceId, onAdded }) {
             onChange={(e) => setName(e.target.value)}
             required
             disabled={loading}
-            placeholder="User's name"
+            placeholder="Competitive programmer's name"
           />
         </div>
 
@@ -201,7 +216,7 @@ function CreateNewTab({ spaceId, onAdded }) {
         {success && <div className="create-success">{success}</div>}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Adding...' : 'Add User'}
+          {loading ? 'Adding...' : 'Track Ratings'}
         </button>
       </form>
     </div>

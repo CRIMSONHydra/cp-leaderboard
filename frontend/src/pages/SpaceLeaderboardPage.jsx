@@ -4,7 +4,6 @@ import { useSpace } from '../hooks/useSpace';
 import LeaderboardTable from '../components/Leaderboard/LeaderboardTable';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
-import InviteCodeDisplay from '../components/Spaces/InviteCodeDisplay';
 import AddUserToSpace from '../components/Spaces/AddUserToSpace';
 import './SpaceLeaderboardPage.css';
 
@@ -24,16 +23,14 @@ export default function SpaceLeaderboardPage() {
         <div className="space-lb-nav">
           <Link to="/spaces" className="back-link">My Spaces</Link>
           {isAdmin && (
-            <Link to={`/spaces/${spaceId}/settings`} className="settings-link">Settings</Link>
+            <Link to={`/spaces/${spaceId}/settings`} className="settings-link">Members &amp; Settings</Link>
           )}
         </div>
         <h1>{space?.name}</h1>
         {space?.description && <p className="space-lb-desc">{space.description}</p>}
         <div className="space-lb-meta">
           <span>{space?.members?.length} members</span>
-          {isAdmin && space?.inviteCode && (
-            <InviteCodeDisplay code={space.inviteCode} />
-          )}
+          <span>{data.length} tracked</span>
         </div>
       </div>
 
