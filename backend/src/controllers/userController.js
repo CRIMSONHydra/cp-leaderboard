@@ -37,8 +37,8 @@ async function updateUserHandles(userId, handles) {
   try {
     ratingErrors = await updateSingleUser(user);
   } catch (error) {
-    console.error(`Failed to fetch ratings for ${user.name}:`, error.message);
-    ratingErrors.push({ platform: 'all', error: error.message });
+    console.error(`Failed to fetch ratings for ${user.name}:`, error);
+    ratingErrors.push({ platform: 'all', error: 'Failed to fetch ratings' });
   }
 
   const updatedUser = await User.findById(userId).lean();
@@ -89,8 +89,8 @@ const createUser = async (req, res) => {
       console.log(`Ratings fetched for user: ${user.name}, errors: ${ratingErrors.length}`);
     } catch (error) {
       // Log error but don't fail user creation
-      console.error(`Failed to fetch ratings for user ${user.name}:`, error.message);
-      ratingErrors.push({ platform: 'all', error: error.message });
+      console.error(`Failed to fetch ratings for user ${user.name}:`, error);
+      ratingErrors.push({ platform: 'all', error: 'Failed to fetch ratings' });
     }
 
     // Fetch updated user with ratings
@@ -122,7 +122,7 @@ const updateUser = async (req, res) => {
     const { userId } = req.params;
     const { handles } = req.body;
 
-    if (!handles || typeof handles !== 'object') {
+    if (!handles || typeof handles !== 'object' || Array.isArray(handles)) {
       return res.status(400).json({ success: false, error: 'Handles object is required' });
     }
 

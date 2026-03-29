@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { PLATFORMS, PLATFORM_NAMES, PLATFORM_URLS, PLATFORM_CHART_COLORS } from '../constants/platforms';
 import { getPlatformColor } from '../utils/ratingUtils';
-import { useAuth } from '../contexts/AuthContext';
 import { spacesApi } from '../services/api';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { useSpace } from '../hooks/useSpace';
 import RatingHistoryChart, { SinglePlatformChart } from '../components/UserProfile/RatingHistoryChart';
 import EditUserModal from '../components/common/EditUserModal';
 import Tooltip from '../components/common/Tooltip';
@@ -16,11 +16,12 @@ export default function UserProfilePage() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const { loading, error, userData, history, refetch } = useUserProfile(id);
   const [showEdit, setShowEdit] = useState(false);
 
   const spaceId = searchParams.get('spaceId');
+  const { space } = useSpace(spaceId);
+  const isSpaceAdmin = space?.myRole === 'admin';
 
   if (loading) {
     return (
@@ -65,7 +66,7 @@ export default function UserProfilePage() {
       <div className="profile-header">
         <div className="profile-name-row">
           <h1 className="user-name">{userData.name}</h1>
-          {isAuthenticated() && spaceId && (
+          {isSpaceAdmin && (
             <button
               type="button"
               className="btn-edit-profile"

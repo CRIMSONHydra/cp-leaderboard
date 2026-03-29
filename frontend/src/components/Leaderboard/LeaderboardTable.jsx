@@ -54,6 +54,7 @@ export default function LeaderboardTable({ data, loading, error, sortBy, sortOrd
                 </Tooltip>
               </div>
             </th>
+            {onEdit && <th className="edit-col"></th>}
           </tr>
         </thead>
         <tbody>

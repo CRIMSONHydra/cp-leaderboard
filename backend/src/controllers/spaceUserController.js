@@ -226,7 +226,7 @@ const updateTrackedUser = async (req, res) => {
     const { handles } = req.body;
     const space = req.space;
 
-    if (!handles || typeof handles !== 'object') {
+    if (!handles || typeof handles !== 'object' || Array.isArray(handles)) {
       return res.status(400).json({ success: false, error: 'Handles object is required' });
     }
 

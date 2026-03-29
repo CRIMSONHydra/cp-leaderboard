@@ -1,14 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PLATFORMS, PLATFORM_NAMES } from '../../constants/platforms';
 import './EditUserModal.css';
 
-/**
- * Modal to edit a tracked user's platform handles.
- * @param {object} user - The user object with name, handles, _id
- * @param {function} onSave - async (userId, handles) => void
- * @param {function} onClose - close the modal
- * @param {function} [onUpdated] - called after successful save
- */
 export default function EditUserModal({ user, onSave, onClose, onUpdated }) {
   const [handles, setHandles] = useState(
     Object.fromEntries(PLATFORMS.map(p => [p, user.handles?.[p] || '']))
@@ -16,6 +9,17 @@ export default function EditUserModal({ user, onSave, onClose, onUpdated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape' && !saving) {
+      onClose();
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,9 +43,17 @@ export default function EditUserModal({ user, onSave, onClose, onUpdated }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={() => !saving && onClose()}>
-      <div className="edit-user-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Edit Handles</h2>
+    <div className="modal-overlay" onClick={() => !saving && onClose()} onKeyDown={handleKeyDown}>
+      <div
+        className="edit-user-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-user-title"
+        ref={dialogRef}
+        tabIndex={-1}
+      >
+        <h2 id="edit-user-title">Edit Handles</h2>
         <p className="edit-user-name">{user.name}</p>
 
         <form onSubmit={handleSubmit}>
