@@ -54,6 +54,13 @@ export const spacesApi = {
       body: JSON.stringify(userData)
     }),
 
+  updateTrackedUser: (spaceId, userId, handles) =>
+    fetchJSON(`/spaces/${spaceId}/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handles })
+    }),
+
   removeUserFromSpace: (spaceId, userId) =>
     fetchJSON(`/spaces/${spaceId}/users/${userId}`, { method: 'DELETE' }),
 

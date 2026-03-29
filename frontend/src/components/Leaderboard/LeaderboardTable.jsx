@@ -6,7 +6,7 @@ import Loading from '../common/Loading';
 import ErrorMessage from '../common/ErrorMessage';
 import './LeaderboardTable.css';
 
-export default function LeaderboardTable({ data, loading, error, sortBy, sortOrder, onSort, onRetry }) {
+export default function LeaderboardTable({ data, loading, error, sortBy, sortOrder, onSort, onRetry, onEdit, spaceId }) {
   if (loading) return <Loading />;
   if (error) return <ErrorMessage message={error} onRetry={onRetry} />;
   if (data.length === 0) {
@@ -54,6 +54,7 @@ export default function LeaderboardTable({ data, loading, error, sortBy, sortOrd
                 </Tooltip>
               </div>
             </th>
+            {onEdit && <th className="edit-col"></th>}
           </tr>
         </thead>
         <tbody>
@@ -62,6 +63,8 @@ export default function LeaderboardTable({ data, loading, error, sortBy, sortOrd
               key={user._id}
               user={user}
               rank={index + 1}
+              onEdit={onEdit}
+              spaceId={spaceId}
             />
           ))}
         </tbody>
