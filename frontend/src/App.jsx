@@ -11,11 +11,13 @@ import SpaceSettingsPage from './pages/SpaceSettingsPage';
 import AddUser from './components/UserManagement/AddUser';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminProtectedRoute from './components/common/AdminProtectedRoute';
+import Navbar from './components/Layout/Navbar';
 import './App.css';
 
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         {/* Public */}
         <Route path="/" element={<LeaderboardPage />} />

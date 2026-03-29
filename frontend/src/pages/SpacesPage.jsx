@@ -18,7 +18,6 @@ export default function SpacesPage() {
     <div className="spaces-page">
       <div className="spaces-header">
         <div className="spaces-header-left">
-          <Link to="/" className="back-link">Back to Leaderboard</Link>
           <h1>My Spaces</h1>
         </div>
         <div className="spaces-header-actions">

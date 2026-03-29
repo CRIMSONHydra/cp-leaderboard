@@ -156,7 +156,10 @@ export default function SpaceSettingsPage() {
 
       <section className="settings-section">
         <div className="section-header-row">
-          <h2>Members</h2>
+          <div>
+            <h2>Members</h2>
+            <p className="section-hint">People with access to this space. Invite by email to add viewers or admins.</p>
+          </div>
           <button onClick={() => setShowInviteModal(true)} className="btn btn-primary">
             Invite Member
           </button>

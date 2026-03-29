@@ -28,8 +28,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
     setAccount(null);
+    try {
+      await authApi.logout();
+    } catch {
+      // State already cleared — API failure is non-critical
+    }
   }, []);
 
   const isAuthenticated = useCallback(() => {
