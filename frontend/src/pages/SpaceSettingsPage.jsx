@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSpace } from '../hooks/useSpace';
 import { useSpaceMembers } from '../hooks/useSpaceMembers';
 import InviteCodeDisplay from '../components/Spaces/InviteCodeDisplay';
+import InviteMemberModal from '../components/Spaces/InviteMemberModal';
+import SpaceInvitationsList from '../components/Spaces/SpaceInvitationsList';
 import MemberList from '../components/Spaces/MemberList';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -22,6 +24,8 @@ export default function SpaceSettingsPage() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [invitationsKey, setInvitationsKey] = useState(0);
   const seededSpaceIdRef = useRef(null);
 
   // Only seed form fields when the space identity changes, not on every object update
@@ -150,13 +154,30 @@ export default function SpaceSettingsPage() {
         </div>
       </section>
 
-      <MemberList
-        members={members}
-        isAdmin={isAdmin}
-        ownerId={space?.owner?._id || space?.owner}
-        onRoleChange={handleRoleChange}
-        onRemove={handleRemoveMember}
-      />
+      <section className="settings-section">
+        <div className="section-header-row">
+          <h2>Members</h2>
+          <button onClick={() => setShowInviteModal(true)} className="btn btn-primary">
+            Invite Member
+          </button>
+        </div>
+        <MemberList
+          members={members}
+          isAdmin={isAdmin}
+          ownerId={space?.owner?._id || space?.owner}
+          onRoleChange={handleRoleChange}
+          onRemove={handleRemoveMember}
+        />
+        <SpaceInvitationsList key={invitationsKey} spaceId={spaceId} />
+      </section>
+
+      {showInviteModal && (
+        <InviteMemberModal
+          spaceId={spaceId}
+          onClose={() => setShowInviteModal(false)}
+          onInvited={() => setInvitationsKey(k => k + 1)}
+        />
+      )}
 
       <section className="settings-section danger-zone">
         <h2>Danger Zone</h2>

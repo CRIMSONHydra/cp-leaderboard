@@ -18,8 +18,18 @@ import {
   addUserToSpace,
   removeUserFromSpace,
   getSpaceLeaderboard,
-  searchUsers
+  searchUsers,
+  createAndTrackUser
 } from '../controllers/spaceUserController.js';
+import {
+  sendInvitation,
+  getMyInvitations,
+  acceptInvitation,
+  declineInvitation,
+  getSpaceInvitations,
+  cancelInvitation,
+  searchAccounts
+} from '../controllers/invitationController.js';
 
 const router = express.Router();
 
@@ -34,6 +44,11 @@ router.post('/join', joinSpace);
 // Search CP users (for adding to spaces)
 router.get('/users/search', searchUsers);
 
+// My pending invitations (must be before /:spaceId)
+router.get('/invitations/pending', getMyInvitations);
+router.post('/invitations/:invitationId/accept', acceptInvitation);
+router.post('/invitations/:invitationId/decline', declineInvitation);
+
 // Space-specific routes
 router.get('/:spaceId', getSpace);
 router.put('/:spaceId', requireSpaceRole('admin'), updateSpace);
@@ -46,7 +61,16 @@ router.get('/:spaceId/leaderboard', requireSpaceRole('admin', 'viewer'), getSpac
 
 // Tracked users management
 router.post('/:spaceId/users', requireSpaceRole('admin'), addUserToSpace);
+router.post('/:spaceId/users/create', requireSpaceRole('admin'), createAndTrackUser);
 router.delete('/:spaceId/users/:userId', requireSpaceRole('admin'), removeUserFromSpace);
+
+// Space invitations
+router.get('/:spaceId/invitations', requireSpaceRole('admin'), getSpaceInvitations);
+router.post('/:spaceId/invitations', requireSpaceRole('admin'), sendInvitation);
+router.delete('/:spaceId/invitations/:invitationId', requireSpaceRole('admin'), cancelInvitation);
+
+// Account search (for inviting members)
+router.get('/:spaceId/accounts/search', requireSpaceRole('admin'), searchAccounts);
 
 // Member management
 router.get('/:spaceId/members', requireSpaceRole('admin', 'viewer'), getMembers);

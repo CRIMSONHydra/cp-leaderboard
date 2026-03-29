@@ -353,6 +353,243 @@
   color: #888;
 }
 
+/* Tabs */
+.tab-bar {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 1rem;
+}
+
+.tab-btn {
+  padding: 0.6rem 1.2rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #888;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn:hover {
+  color: #2c3e50;
+}
+
+.tab-btn.active {
+  color: #3498db;
+  border-bottom-color: #3498db;
+  font-weight: 600;
+}
+
+.tab-content {
+  padding-top: 0.5rem;
+}
+
+/* Create user form in tab */
+.create-user-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.create-user-form label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.create-user-form input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.create-user-form input:focus {
+  border-color: #3498db;
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+.handles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.required {
+  color: #e74c3c;
+}
+
+.create-success {
+  padding: 0.75rem;
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Pending Invitations */
+.pending-invitations {
+  margin-bottom: 2rem;
+}
+
+.pending-invitations h2 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.invitation-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.invitation-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+}
+
+.invitation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.invitation-detail {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.invitation-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.invitation-actions .btn-accept {
+  background: #27ae60;
+}
+
+.invitation-actions .btn-accept:hover:not(:disabled) {
+  background: #219a52;
+}
+
+.invitation-actions .btn-decline {
+  background: #95a5a6;
+}
+
+.invitation-actions .btn-decline:hover:not(:disabled) {
+  background: #7f8c8d;
+}
+
+/* Invite modal extras */
+.invite-email-group {
+  position: relative;
+}
+
+.search-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.25rem;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.account-option {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.account-option:last-child {
+  border-bottom: none;
+}
+
+.account-option:hover {
+  background: #f8f9fa;
+}
+
+.account-username {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.account-email {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* Invitation status badges */
+.status-pending {
+  color: #f39c12;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.status-accepted {
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.status-declined {
+  color: #95a5a6;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.invitation-resolved {
+  opacity: 0.6;
+}
+
+.invitations-list {
+  margin-top: 2rem;
+}
+
+.invitations-list h3 {
+  margin: 0 0 1rem;
+  color: #2c3e50;
+}
+
+.modal-content select {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
 @media (max-width: 768px) {
   .modal-content {
     padding: 1.5rem;
@@ -369,5 +606,9 @@
 
   .search-form {
     flex-direction: column;
+  }
+
+  .handles-grid {
+    grid-template-columns: 1fr;
   }
 }
