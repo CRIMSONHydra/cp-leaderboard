@@ -10,8 +10,19 @@
   margin: 0 auto;
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.header-brand {
+  text-decoration: none;
+}
+
 .app-title {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   font-size: 2.5rem;
   font-weight: 700;
   background: linear-gradient(90deg, #fff, #a8d8ff);
@@ -24,6 +35,48 @@
   margin: 0 0 1rem 0;
   color: #a0a0a0;
   font-size: 1rem;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: #a8d8ff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.nav-link-primary {
+  background: rgba(52, 152, 219, 0.3);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+}
+
+.nav-link-primary:hover {
+  background: rgba(52, 152, 219, 0.5);
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.nav-user {
+  color: #6bc5ff;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .header-meta {
@@ -45,6 +98,15 @@
 @media (max-width: 600px) {
   .app-title {
     font-size: 1.75rem;
+  }
+
+  .header-top {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header-nav {
+    gap: 0.5rem;
   }
 
   .header-meta {

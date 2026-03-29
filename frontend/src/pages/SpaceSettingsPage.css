@@ -1,0 +1,151 @@
+.space-settings-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.settings-nav {
+  margin-bottom: 1rem;
+}
+
+.settings-nav .back-link {
+  color: #3498db;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.settings-nav .back-link:hover {
+  text-decoration: underline;
+}
+
+.space-settings-page h1 {
+  margin: 0 0 2rem;
+  color: #2c3e50;
+}
+
+.settings-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.settings-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.settings-section .form-group {
+  margin-bottom: 1rem;
+}
+
+.settings-section label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.settings-section input,
+.settings-section textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.settings-section input:focus,
+.settings-section textarea:focus {
+  border-color: #3498db;
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
+
+.settings-section textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.save-msg {
+  color: #27ae60;
+  font-size: 0.9rem;
+}
+
+.invite-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.danger-zone {
+  border: 1px solid #f5c6cb;
+}
+
+.danger-zone h2 {
+  color: #c0392b;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #ecf0f1;
+  color: #555;
+  border: 1px solid #bdc3c7;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #dfe6e9;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+@media (max-width: 768px) {
+  .space-settings-page {
+    padding: 1rem;
+  }
+
+  .invite-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
