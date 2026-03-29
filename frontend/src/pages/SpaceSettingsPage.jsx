@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { spacesApi } from '../services/api/spaces';
 import { useAuth } from '../contexts/AuthContext';
+import { useSpace } from '../hooks/useSpace';
 import { useSpaceMembers } from '../hooks/useSpaceMembers';
 import InviteCodeDisplay from '../components/Spaces/InviteCodeDisplay';
 import MemberList from '../components/Spaces/MemberList';
@@ -14,26 +15,20 @@ export default function SpaceSettingsPage() {
   const navigate = useNavigate();
   const { account } = useAuth();
 
-  const [space, setSpace] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { space, loading, error, setSpace } = useSpace(spaceId);
+  const { members, refetch: refetchMembers } = useSpaceMembers(spaceId);
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState(null);
 
-  const { members, refetch: refetchMembers } = useSpaceMembers(spaceId);
-
   useEffect(() => {
-    spacesApi.getSpace(spaceId)
-      .then(res => {
-        setSpace(res.data);
-        setName(res.data.name);
-        setDescription(res.data.description || '');
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [spaceId]);
+    if (space) {
+      setName(space.name);
+      setDescription(space.description || '');
+    }
+  }, [space]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorMessage message={error} />;
@@ -90,6 +85,16 @@ export default function SpaceSettingsPage() {
     }
   };
 
+  const handleRoleChange = async (accountId, newRole) => {
+    await spacesApi.updateMemberRole(spaceId, accountId, newRole);
+    refetchMembers();
+  };
+
+  const handleRemoveMember = async (accountId) => {
+    await spacesApi.removeMember(spaceId, accountId);
+    refetchMembers();
+  };
+
   return (
     <div className="space-settings-page">
       <div className="settings-nav">
@@ -144,11 +149,11 @@ export default function SpaceSettingsPage() {
       </section>
 
       <MemberList
-        spaceId={spaceId}
         members={members}
         isAdmin={isAdmin}
         ownerId={space?.owner?._id || space?.owner}
-        onUpdated={refetchMembers}
+        onRoleChange={handleRoleChange}
+        onRemove={handleRemoveMember}
       />
 
       <section className="settings-section danger-zone">

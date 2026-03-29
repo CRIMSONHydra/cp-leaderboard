@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { spacesApi } from '../../services/api/spaces';
 import './Spaces.css';
 
-export default function MemberList({ spaceId, members, isAdmin, ownerId, onUpdated }) {
+export default function MemberList({ members, isAdmin, ownerId, onRoleChange, onRemove }) {
   const [loading, setLoading] = useState(null);
 
   const handleRoleChange = async (accountId, newRole) => {
     setLoading(accountId);
     try {
-      await spacesApi.updateMemberRole(spaceId, accountId, newRole);
-      onUpdated();
+      await onRoleChange(accountId, newRole);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -21,8 +19,7 @@ export default function MemberList({ spaceId, members, isAdmin, ownerId, onUpdat
     if (!confirm(`Remove ${username} from this space?`)) return;
     setLoading(accountId);
     try {
-      await spacesApi.removeMember(spaceId, accountId);
-      onUpdated();
+      await onRemove(accountId);
     } catch (err) {
       alert(err.message);
     } finally {

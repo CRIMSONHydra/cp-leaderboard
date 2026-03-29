@@ -1,6 +1,6 @@
 {
   "name": "cp-leaderboard-backend",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Backend for CP Leaderboard - tracks competitive programming ratings",
   "type": "module",
   "main": "src/server.js",

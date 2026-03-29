@@ -3,7 +3,7 @@ import { PLATFORMS } from '../../constants/platforms';
 import RatingDisplay from './RatingDisplay';
 import './LeaderboardRow.css';
 
-export default function LeaderboardRow({ user, rank }) {
+export default function LeaderboardRow({ user, rank, platforms = PLATFORMS }) {
   return (
     <tr className="leaderboard-row">
       <td className="rank-cell">
@@ -16,7 +16,7 @@ export default function LeaderboardRow({ user, rank }) {
           {user.name}
         </Link>
       </td>
-      {PLATFORMS.map(platform => (
+      {platforms.map(platform => (
         <td key={platform} className="rating-cell">
           <RatingDisplay
             platform={platform}

@@ -10,6 +10,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { PLATFORM_NAMES, PLATFORM_CHART_COLORS } from '../../constants/platforms';
+import { buildCombinedChartData, buildSinglePlatformData } from '../../utils/chartUtils';
 import './RatingHistoryChart.css';
 
 function formatDate(dateString) {
@@ -50,44 +51,10 @@ export default function RatingHistoryChart({ history, platforms }) {
     setTooltipData(null);
   }, []);
 
-  // Combine all platform histories into a single timeline (memoized)
-  const filledData = useMemo(() => {
-    const dateMap = new Map();
-
-    for (const platform of platforms) {
-      const platformHistory = history[platform];
-      if (!platformHistory?.success || !platformHistory.data?.length) continue;
-
-      for (const entry of platformHistory.data) {
-        const dateKey = entry.date.split('T')[0];
-        if (!dateMap.has(dateKey)) {
-          dateMap.set(dateKey, { date: entry.date });
-        }
-        dateMap.get(dateKey)[platform] = entry.rating;
-      }
-    }
-
-    const sortedData = Array.from(dateMap.values()).sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
-    );
-
-    const filled = [];
-    const lastValues = {};
-
-    for (const point of sortedData) {
-      const newPoint = { ...point };
-      for (const platform of platforms) {
-        if (point[platform] !== undefined) {
-          lastValues[platform] = point[platform];
-        } else if (lastValues[platform] !== undefined) {
-          newPoint[platform] = lastValues[platform];
-        }
-      }
-      filled.push(newPoint);
-    }
-
-    return filled;
-  }, [history, platforms]);
+  const filledData = useMemo(
+    () => buildCombinedChartData(history, platforms),
+    [history, platforms]
+  );
 
   if (filledData.length === 0) {
     return (
@@ -195,16 +162,10 @@ export function SinglePlatformChart({ history, platform }) {
   const [tooltipInfo, setTooltipInfo] = useState(null);
   const lastDataRef = useRef(null);
 
-  const data = useMemo(() => {
-    if (!history?.success || !history.data?.length) return [];
-    return history.data.map(entry => ({
-      date: entry.date,
-      rating: entry.rating,
-      contestName: entry.contestName,
-      change: entry.change,
-      rank: entry.rank
-    }));
-  }, [history]);
+  const data = useMemo(
+    () => buildSinglePlatformData(history),
+    [history]
+  );
 
   const handleDataChange = useCallback((newData) => {
     if (newData?.date !== lastDataRef.current?.date) {
