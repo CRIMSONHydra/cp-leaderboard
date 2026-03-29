@@ -47,6 +47,13 @@ export const spacesApi = {
       body: JSON.stringify({ userId })
     }),
 
+  createAndTrackUser: (spaceId, userData) =>
+    fetchJSON(`/spaces/${spaceId}/users/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    }),
+
   removeUserFromSpace: (spaceId, userId) =>
     fetchJSON(`/spaces/${spaceId}/users/${userId}`, { method: 'DELETE' }),
 
@@ -64,5 +71,31 @@ export const spacesApi = {
     fetchJSON(`/spaces/${spaceId}/members/${accountId}`, { method: 'DELETE' }),
 
   searchUsers: (query) =>
-    fetchJSON(`/spaces/users/search?q=${encodeURIComponent(query)}`)
+    fetchJSON(`/spaces/users/search?q=${encodeURIComponent(query)}`),
+
+  // Invitations
+  sendInvitation: (spaceId, email, role) =>
+    fetchJSON(`/spaces/${spaceId}/invitations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, role })
+    }),
+
+  getMyInvitations: () =>
+    fetchJSON('/spaces/invitations/pending'),
+
+  acceptInvitation: (invitationId) =>
+    fetchJSON(`/spaces/invitations/${invitationId}/accept`, { method: 'POST' }),
+
+  declineInvitation: (invitationId) =>
+    fetchJSON(`/spaces/invitations/${invitationId}/decline`, { method: 'POST' }),
+
+  getSpaceInvitations: (spaceId) =>
+    fetchJSON(`/spaces/${spaceId}/invitations`),
+
+  cancelInvitation: (spaceId, invitationId) =>
+    fetchJSON(`/spaces/${spaceId}/invitations/${invitationId}`, { method: 'DELETE' }),
+
+  searchAccounts: (spaceId, email) =>
+    fetchJSON(`/spaces/${spaceId}/accounts/search?email=${encodeURIComponent(email)}`)
 };

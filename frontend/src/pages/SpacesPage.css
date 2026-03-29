@@ -66,6 +66,23 @@
   gap: 1.5rem;
 }
 
+.global-leaderboard-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: none;
+}
+
+.global-leaderboard-card .space-card-name {
+  color: white;
+}
+
+.global-leaderboard-card .space-card-desc {
+  color: #a0a0a0;
+}
+
+.global-leaderboard-card:hover {
+  box-shadow: 0 4px 20px rgba(26, 26, 46, 0.3);
+}
+
 .spaces-empty {
   text-align: center;
   padding: 4rem 2rem;

@@ -10,6 +10,7 @@ import SpaceLeaderboardPage from './pages/SpaceLeaderboardPage';
 import SpaceSettingsPage from './pages/SpaceSettingsPage';
 import AddUser from './components/UserManagement/AddUser';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminProtectedRoute from './components/common/AdminProtectedRoute';
 import './App.css';
 
 function App() {
@@ -30,7 +31,11 @@ function App() {
         <Route path="/spaces/:spaceId/settings" element={<ProtectedRoute><SpaceSettingsPage /></ProtectedRoute>} />
 
         {/* Legacy admin */}
-        <Route path="/add-user" element={<ProtectedRoute><AddUser /></ProtectedRoute>} />
+        <Route path="/add-user" element={
+          <AdminProtectedRoute>
+            {(credentials) => <AddUser credentials={credentials} />}
+          </AdminProtectedRoute>
+        } />
       </Routes>
     </BrowserRouter>
   );

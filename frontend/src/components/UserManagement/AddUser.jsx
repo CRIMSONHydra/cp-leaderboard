@@ -1,21 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { PLATFORMS, PLATFORM_NAMES } from '../../constants/platforms';
 import './AddUser.css';
 
 const emptyHandles = () => Object.fromEntries(PLATFORMS.map(p => [p, '']));
 
-export default function AddUser() {
-  const navigate = useNavigate();
-  const { getCredentials } = useAuth();
-  
-  // Get credentials from in-memory auth context (never from browser storage)
-  const credentials = getCredentials();
+export default function AddUser({ credentials }) {
   const username = credentials?.username || '';
   const password = credentials?.password || '';
-  
+
   const [formData, setFormData] = useState({
     name: '',
     handles: emptyHandles()
@@ -60,7 +53,6 @@ export default function AddUser() {
     setLoading(true);
 
     try {
-      // Prepare user data, removing empty handles
       const userData = {
         name: formData.name.trim(),
         handles: {}
@@ -76,13 +68,11 @@ export default function AddUser() {
       await api.addUser(userData, username, password);
 
       setSuccess(true);
-      // Reset form
       setFormData({
         name: '',
         handles: emptyHandles()
       });
 
-      // Clear success message after 3 seconds
       successTimerRef.current = setTimeout(() => {
         setSuccess(false);
       }, 3000);
@@ -152,14 +142,6 @@ export default function AddUser() {
 
         <div className="form-actions">
           <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="btn btn-secondary"
-            disabled={loading}
-          >
-            Cancel
-          </button>
-          <button
             type="submit"
             className="btn btn-primary"
             disabled={loading}
@@ -172,4 +154,3 @@ export default function AddUser() {
     </div>
   );
 }
-

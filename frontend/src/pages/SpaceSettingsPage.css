@@ -37,6 +37,17 @@
   color: #2c3e50;
 }
 
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-header-row h2 {
+  margin: 0;
+}
+
 .settings-section .form-group {
   margin-bottom: 1rem;
 }

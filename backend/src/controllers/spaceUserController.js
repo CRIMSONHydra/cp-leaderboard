@@ -1,6 +1,6 @@
 import Space from '../models/Space.js';
 import User from '../models/User.js';
-import { PLATFORMS } from '../services/ratingUpdater.js';
+import { PLATFORMS, updateSingleUser } from '../services/ratingUpdater.js';
 
 const addUserToSpace = async (req, res) => {
   try {
@@ -135,4 +135,88 @@ const searchUsers = async (req, res) => {
   }
 };
 
-export { addUserToSpace, removeUserFromSpace, getSpaceLeaderboard, searchUsers };
+/**
+ * Find an existing User whose handles match ALL provided non-null handles
+ * on the same platforms (case-insensitive). Only returns a match if every
+ * provided handle is present on the same user.
+ */
+async function findExactMatchByHandles(handles) {
+  const conditions = [];
+  for (const platform of PLATFORMS) {
+    const handle = handles?.[platform]?.trim();
+    if (handle) {
+      const escaped = handle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      conditions.push({ [`handles.${platform}`]: new RegExp(`^${escaped}$`, 'i') });
+    }
+  }
+  if (conditions.length === 0) return null;
+  return User.findOne({ $and: conditions, isActive: true });
+}
+
+const createAndTrackUser = async (req, res) => {
+  try {
+    const { name, handles } = req.body;
+    const space = req.space;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Name is required' });
+    }
+
+    const hasAnyHandle = PLATFORMS.some(p => handles?.[p]?.trim());
+    if (!hasAnyHandle) {
+      return res.status(400).json({ success: false, error: 'At least one platform handle is required' });
+    }
+
+    // Try to find existing user with matching handles
+    let user = await findExactMatchByHandles(handles);
+    let deduplicated = false;
+
+    if (user) {
+      deduplicated = true;
+    } else {
+      // Create new user
+      const userData = {
+        name: name.trim(),
+        handles: Object.fromEntries(
+          PLATFORMS.map(p => [p, handles?.[p]?.trim() || null])
+        )
+      };
+      user = await User.create(userData);
+
+      // Fetch ratings
+      try {
+        await updateSingleUser(user);
+      } catch (err) {
+        console.error(`Failed to fetch ratings for ${user.name}:`, err.message);
+      }
+
+      // Re-fetch with updated ratings
+      user = await User.findById(user._id).lean();
+    }
+
+    // Add to space (atomic, skip if already tracked)
+    const result = await Space.updateOne(
+      { _id: space._id, trackedUsers: { $ne: user._id } },
+      { $addToSet: { trackedUsers: user._id } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'User already tracked in this space',
+        data: user
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: user,
+      deduplicated
+    });
+  } catch (error) {
+    console.error('Create and track user error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+export { addUserToSpace, removeUserFromSpace, getSpaceLeaderboard, searchUsers, createAndTrackUser };

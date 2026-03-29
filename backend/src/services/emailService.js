@@ -20,6 +20,31 @@ function getTransporter() {
   return transporter;
 }
 
+export async function sendSpaceInviteEmail(email, spaceName, inviterName, role) {
+  const transport = getTransporter();
+
+  if (!transport) {
+    console.log('=== SPACE INVITATION ===');
+    console.log(`To: ${email}`);
+    console.log(`Space: ${spaceName}`);
+    console.log(`Invited by: ${inviterName}`);
+    console.log(`Role: ${role}`);
+    console.log('========================');
+    return;
+  }
+
+  await transport.sendMail({
+    from: process.env.SMTP_FROM || 'noreply@cpleaderboard.com',
+    to: email,
+    subject: `You're invited to join "${spaceName}" - CP Leaderboard`,
+    html: `
+      <h2>Space Invitation</h2>
+      <p><strong>${inviterName}</strong> invited you to join <strong>${spaceName}</strong> as a <strong>${role}</strong>.</p>
+      <p>Log in to CP Leaderboard to accept or decline the invitation.</p>
+    `
+  });
+}
+
 export async function sendPasswordResetEmail(email, resetUrl) {
   const transport = getTransporter();
 

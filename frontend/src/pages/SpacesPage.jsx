@@ -4,6 +4,7 @@ import { useSpaces } from '../hooks/useSpaces';
 import SpaceCard from '../components/Spaces/SpaceCard';
 import CreateSpaceModal from '../components/Spaces/CreateSpaceModal';
 import JoinSpaceModal from '../components/Spaces/JoinSpaceModal';
+import PendingInvitations from '../components/Spaces/PendingInvitations';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
 import './SpacesPage.css';
@@ -30,21 +31,26 @@ export default function SpacesPage() {
         </div>
       </div>
 
+      <PendingInvitations onAccepted={refetch} />
+
       {loading && <Loading />}
       {error && <ErrorMessage message={error} onRetry={refetch} />}
 
-      {!loading && !error && spaces.length === 0 && (
-        <div className="spaces-empty">
-          <h2>No spaces yet</h2>
-          <p>Create a space to track competitive programmers, or join one with an invite code.</p>
-        </div>
-      )}
-
-      {!loading && spaces.length > 0 && (
+      {!loading && !error && (
         <div className="spaces-grid">
+          <Link to="/" className="space-card global-leaderboard-card">
+            <h3 className="space-card-name">Global Leaderboard</h3>
+            <p className="space-card-desc">View all tracked users across the platform</p>
+          </Link>
           {spaces.map(space => (
             <SpaceCard key={space._id} space={space} />
           ))}
+        </div>
+      )}
+
+      {!loading && !error && spaces.length === 0 && (
+        <div className="spaces-empty">
+          <p>Create a space to track competitive programmers, or join one with an invite code.</p>
         </div>
       )}
 
