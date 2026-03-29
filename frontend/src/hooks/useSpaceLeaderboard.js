@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { spacesApi } from '../services/api/spaces';
+import { spacesApi } from '../services/api';
 import { useSortedTable } from './useSortedTable';
 
 export function useSpaceLeaderboard(spaceId) {

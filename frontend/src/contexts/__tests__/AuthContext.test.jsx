@@ -3,7 +3,7 @@ import { render, screen, act, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../AuthContext';
 
 // Mock the auth API module
-vi.mock('../../services/api/auth', () => ({
+vi.mock('../../services/api', () => ({
   authApi: {
     getMe: vi.fn(),
     login: vi.fn(),
@@ -12,7 +12,7 @@ vi.mock('../../services/api/auth', () => ({
   }
 }));
 
-import { authApi } from '../../services/api/auth';
+import { authApi } from '../../services/api';
 
 function TestComponent() {
   const { account, loading, login, logout, isAuthenticated, getCredentials } = useAuth();

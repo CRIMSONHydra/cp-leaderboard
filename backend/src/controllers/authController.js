@@ -93,7 +93,7 @@ const login = async (req, res) => {
       ? { email: loginId.trim().toLowerCase() }
       : { username: loginId.trim() };
 
-    const account = await Account.findOne(query);
+    const account = await Account.findOne(query).select('+password');
 
     if (!account || !(await account.comparePassword(password))) {
       return res.status(401).json({
@@ -173,15 +173,16 @@ const forgotPassword = async (req, res) => {
         { used: true }
       );
 
-      const token = crypto.randomBytes(32).toString('hex');
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
       await PasswordResetToken.create({
         accountId: account._id,
-        token,
+        token: hashedToken,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
       });
 
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-      const resetUrl = `${clientUrl}/reset-password?token=${token}`;
+      const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
       await sendPasswordResetEmail(account.email, resetUrl);
     }
 
@@ -204,8 +205,9 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Password must be at least 8 characters' });
     }
 
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const resetToken = await PasswordResetToken.findOne({
-      token,
+      token: hashedToken,
       used: false,
       expiresAt: { $gt: new Date() }
     });
@@ -214,7 +216,7 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid or expired reset token' });
     }
 
-    const account = await Account.findById(resetToken.accountId);
+    const account = await Account.findById(resetToken.accountId).select('+password');
     if (!account) {
       return res.status(400).json({ success: false, error: 'Account not found' });
     }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { spacesApi } from '../../services/api/spaces';
+import { spacesApi } from '../../services/api';
 import './Spaces.css';
 
 export default function CreateSpaceModal({ onClose, onCreated }) {
@@ -25,7 +25,7 @@ export default function CreateSpaceModal({ onClose, onCreated }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={() => !loading && onClose()}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>Create Space</h2>
         <form onSubmit={handleSubmit}>

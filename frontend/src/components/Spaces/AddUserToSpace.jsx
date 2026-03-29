@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { spacesApi } from '../../services/api/spaces';
+import { spacesApi } from '../../services/api';
 import './Spaces.css';
 
 export default function AddUserToSpace({ spaceId, onAdded }) {

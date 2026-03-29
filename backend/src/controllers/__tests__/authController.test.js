@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
+import crypto from 'crypto';
 import { connectTestDB, disconnectTestDB, clearTestDB } from '../../test/dbSetup.js';
 import Account from '../../models/Account.js';
 import PasswordResetToken from '../../models/PasswordResetToken.js';
@@ -151,6 +152,51 @@ describe('authController', () => {
     });
   });
 
+  describe('refreshToken', () => {
+    it('issues new tokens with valid refresh token', async () => {
+      const account = await Account.create({ username: 'user', email: 'r@b.com', password: 'password123' });
+      const { generateRefreshToken: genRefresh } = await import('../../services/tokenService.js');
+      const token = genRefresh(account._id.toString(), account.refreshTokenVersion);
+
+      const { req, res } = createMockReqRes({}, { refreshToken: token });
+      await refreshToken(req, res);
+
+      const body = res.json.mock.calls[0][0];
+      expect(body.success).toBe(true);
+      expect(body.data.username).toBe('user');
+      expect(res.cookie).toHaveBeenCalled();
+    });
+
+    it('rejects missing refresh token', async () => {
+      const { req, res } = createMockReqRes({}, {});
+      await refreshToken(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('rejects invalid refresh token', async () => {
+      const { req, res } = createMockReqRes({}, { refreshToken: 'garbage' });
+      await refreshToken(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('rejects token with wrong version (revoked)', async () => {
+      const account = await Account.create({ username: 'user', email: 'r@b.com', password: 'password123' });
+      const { generateRefreshToken: genRefresh } = await import('../../services/tokenService.js');
+      const token = genRefresh(account._id.toString(), 0);
+
+      // Increment version to invalidate
+      account.refreshTokenVersion = 1;
+      await account.save();
+
+      const { req, res } = createMockReqRes({}, { refreshToken: token });
+      await refreshToken(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+  });
+
   describe('forgotPassword', () => {
     it('returns success even for nonexistent email', async () => {
       const { req, res } = createMockReqRes({ email: 'nobody@example.com' });
@@ -175,33 +221,37 @@ describe('authController', () => {
   describe('resetPassword', () => {
     it('resets password with valid token', async () => {
       const account = await Account.create({ username: 'user', email: 'test@b.com', password: 'oldpass123' });
-      const resetToken = await PasswordResetToken.create({
+      const rawToken = 'valid-token-123';
+      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+      await PasswordResetToken.create({
         accountId: account._id,
-        token: 'valid-token-123',
+        token: hashedToken,
         expiresAt: new Date(Date.now() + 3600000)
       });
 
-      const { req, res } = createMockReqRes({ token: 'valid-token-123', password: 'newpass123' });
+      const { req, res } = createMockReqRes({ token: rawToken, password: 'newpass123' });
 
       await resetPassword(req, res);
 
       expect(res.json.mock.calls[0][0].success).toBe(true);
 
       // Verify password changed
-      const updated = await Account.findById(account._id);
+      const updated = await Account.findById(account._id).select('+password');
       expect(await updated.comparePassword('newpass123')).toBe(true);
       expect(updated.refreshTokenVersion).toBe(1);
     });
 
     it('rejects expired token', async () => {
       const account = await Account.create({ username: 'user', email: 'test@b.com', password: 'oldpass123' });
+      const rawToken = 'expired-token';
+      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
       await PasswordResetToken.create({
         accountId: account._id,
-        token: 'expired-token',
+        token: hashedToken,
         expiresAt: new Date(Date.now() - 1000) // expired
       });
 
-      const { req, res } = createMockReqRes({ token: 'expired-token', password: 'newpass123' });
+      const { req, res } = createMockReqRes({ token: rawToken, password: 'newpass123' });
 
       await resetPassword(req, res);
 
@@ -210,14 +260,16 @@ describe('authController', () => {
 
     it('rejects used token', async () => {
       const account = await Account.create({ username: 'user', email: 'test@b.com', password: 'oldpass123' });
+      const rawToken = 'used-token';
+      const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
       await PasswordResetToken.create({
         accountId: account._id,
-        token: 'used-token',
+        token: hashedToken,
         expiresAt: new Date(Date.now() + 3600000),
         used: true
       });
 
-      const { req, res } = createMockReqRes({ token: 'used-token', password: 'newpass123' });
+      const { req, res } = createMockReqRes({ token: rawToken, password: 'newpass123' });
 
       await resetPassword(req, res);
 

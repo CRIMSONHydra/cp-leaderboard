@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { spacesApi } from '../services/api/spaces';
+import { spacesApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useSpace } from '../hooks/useSpace';
 import { useSpaceMembers } from '../hooks/useSpaceMembers';

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { spacesApi } from '../services/api/spaces';
+import { spacesApi } from '../services/api';
 
 export function useSpace(spaceId) {
   const [space, setSpace] = useState(null);

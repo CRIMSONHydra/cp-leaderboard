@@ -33,9 +33,8 @@ export async function fetchJSON(url, options = {}) {
       // Retry original request
       return fetchJSON(url, { ...options, _retried: true });
     } catch {
-      // Refresh failed — propagate 401
-      const error = await response.json().catch(() => ({ error: 'Authentication required' }));
-      throw new Error(error.error || 'Authentication required');
+      // Refresh failed — throw without reading the original response again
+      throw new Error('Authentication required');
     }
   }
 

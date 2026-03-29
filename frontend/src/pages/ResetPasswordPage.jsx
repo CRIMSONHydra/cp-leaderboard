@@ -1,18 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { authApi } from '../services/api/auth';
+import { authApi } from '../services/api';
 import './AuthPages.css';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
+  const timerRef = useRef(null);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   if (!token) {
     return (
@@ -47,7 +54,7 @@ export default function ResetPasswordPage() {
     try {
       await authApi.resetPassword(token, password);
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 3000);
+      timerRef.current = setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       setError(err.message || 'Failed to reset password');
     } finally {

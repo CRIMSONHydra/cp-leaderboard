@@ -1,3 +1,4 @@
+import Space from '../models/Space.js';
 import User from '../models/User.js';
 import { PLATFORMS } from '../services/ratingUpdater.js';
 
@@ -15,16 +16,15 @@ const addUserToSpace = async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    const alreadyTracked = space.trackedUsers.some(
-      id => id.toString() === userId
+    // Atomic: only add if not already tracked
+    const result = await Space.updateOne(
+      { _id: space._id, trackedUsers: { $ne: userId } },
+      { $addToSet: { trackedUsers: userId } }
     );
 
-    if (alreadyTracked) {
+    if (result.modifiedCount === 0) {
       return res.status(409).json({ success: false, error: 'User already in this space' });
     }
-
-    space.trackedUsers.push(userId);
-    await space.save();
 
     res.json({ success: true, data: { userId, name: user.name } });
   } catch (error) {
@@ -41,14 +41,14 @@ const removeUserFromSpace = async (req, res) => {
     const { userId } = req.params;
     const space = req.space;
 
-    const index = space.trackedUsers.findIndex(id => id.toString() === userId);
+    const result = await Space.updateOne(
+      { _id: space._id, trackedUsers: userId },
+      { $pull: { trackedUsers: userId } }
+    );
 
-    if (index === -1) {
+    if (result.modifiedCount === 0) {
       return res.status(404).json({ success: false, error: 'User not in this space' });
     }
-
-    space.trackedUsers.splice(index, 1);
-    await space.save();
 
     res.json({ success: true, message: 'User removed from space' });
   } catch (error) {
@@ -111,7 +111,9 @@ const searchUsers = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Search query must be at least 2 characters' });
     }
 
-    const regex = new RegExp(q.trim(), 'i');
+    // Escape regex special chars to prevent ReDoS
+    const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
     const users = await User.find({
       isActive: true,
       $or: [

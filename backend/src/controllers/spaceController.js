@@ -106,7 +106,7 @@ const updateSpace = async (req, res) => {
     const space = await Space.findByIdAndUpdate(
       req.params.spaceId,
       { $set: updates },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     res.json({ success: true, data: space });
@@ -155,26 +155,29 @@ const joinSpace = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invite code is required' });
     }
 
-    const space = await Space.findOne({ inviteCode, isActive: true });
-
-    if (!space) {
-      return res.status(404).json({ success: false, error: 'Invalid invite code' });
-    }
-
-    const alreadyMember = space.members.some(
-      m => m.account.toString() === req.account.id
+    // Atomic: only add if not already a member
+    const result = await Space.findOneAndUpdate(
+      {
+        inviteCode,
+        isActive: true,
+        'members.account': { $ne: req.account.id }
+      },
+      { $push: { members: { account: req.account.id, role: 'viewer' } } },
+      { returnDocument: 'after' }
     );
 
-    if (alreadyMember) {
+    if (!result) {
+      // Distinguish between invalid code and already a member
+      const existing = await Space.findOne({ inviteCode, isActive: true });
+      if (!existing) {
+        return res.status(404).json({ success: false, error: 'Invalid invite code' });
+      }
       return res.status(409).json({ success: false, error: 'Already a member of this space' });
     }
 
-    space.members.push({ account: req.account.id, role: 'viewer' });
-    await space.save();
-
     res.json({
       success: true,
-      data: { spaceId: space._id, name: space.name, role: 'viewer' }
+      data: { spaceId: result._id, name: result.name, role: 'viewer' }
     });
   } catch (error) {
     console.error('Join space error:', error);
@@ -193,10 +196,10 @@ const leaveSpace = async (req, res) => {
       });
     }
 
-    space.members = space.members.filter(
-      m => m.account.toString() !== req.account.id
+    await Space.updateOne(
+      { _id: space._id },
+      { $pull: { members: { account: req.account.id } } }
     );
-    await space.save();
 
     res.json({ success: true, message: 'Left the space' });
   } catch (error) {
@@ -261,14 +264,14 @@ const removeMember = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Cannot remove the owner' });
     }
 
-    const memberIndex = space.members.findIndex(m => m.account.toString() === accountId);
+    const result = await Space.updateOne(
+      { _id: space._id, 'members.account': accountId },
+      { $pull: { members: { account: accountId } } }
+    );
 
-    if (memberIndex === -1) {
+    if (result.modifiedCount === 0) {
       return res.status(404).json({ success: false, error: 'Member not found' });
     }
-
-    space.members.splice(memberIndex, 1);
-    await space.save();
 
     res.json({ success: true, message: 'Member removed' });
   } catch (error) {

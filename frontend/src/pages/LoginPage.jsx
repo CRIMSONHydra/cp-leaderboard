@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './AuthPages.css';
 
@@ -16,8 +16,7 @@ export default function LoginPage() {
   const returnTo = searchParams.get('returnTo') || '/spaces';
 
   if (isAuthenticated()) {
-    navigate(returnTo, { replace: true });
-    return null;
+    return <Navigate to={returnTo} replace />;
   }
 
   const handleSubmit = async (e) => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './AuthPages.css';
 
@@ -15,8 +15,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated()) {
-    navigate('/spaces', { replace: true });
-    return null;
+    return <Navigate to="/spaces" replace />;
   }
 
   const handleSubmit = async (e) => {
