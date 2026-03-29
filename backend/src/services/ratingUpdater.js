@@ -97,9 +97,9 @@ function normalizeRating(platform, rating) {
 }
 
 /**
- * Calculate aggregate score as average of normalized ratings
+ * Calculate aggregate score as average of normalized ratings, mapped to a 1-10 star scale
  * @param {object} ratings - Platform ratings object
- * @returns {number} Aggregate score (0-100)
+ * @returns {number} Star rating (1.0-10.0), or 0 if no valid ratings
  */
 function calculateAggregateScore(ratings) {
   let totalNormalized = 0;
@@ -116,7 +116,10 @@ function calculateAggregateScore(ratings) {
     }
   }
 
-  return platformCount > 0 ? Math.round(totalNormalized / platformCount) : 0;
+  if (platformCount === 0) return 0;
+  const avg = totalNormalized / platformCount;
+  const starScore = 1 + (avg / 100) * 9;
+  return Math.round(starScore * 10) / 10;
 }
 
 async function updateSingleUser(user) {

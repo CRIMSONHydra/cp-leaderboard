@@ -83,11 +83,12 @@ describe('normalizeRating', () => {
 });
 
 describe('calculateAggregateScore', () => {
-  it('returns normalized score for single platform', () => {
+  it('returns star score for single platform', () => {
     const ratings = {
       codeforces: { rating: 1200, error: null }
     };
-    expect(calculateAggregateScore(ratings)).toBe(20);
+    // normalized: 20, star: 1 + (20/100)*9 = 2.8
+    expect(calculateAggregateScore(ratings)).toBe(2.8);
   });
 
   it('averages scores for multiple platforms', () => {
@@ -95,7 +96,8 @@ describe('calculateAggregateScore', () => {
       codeforces: { rating: 800, error: null },   // normalized: 0
       atcoder: { rating: 4000, error: null }       // normalized: 100
     };
-    expect(calculateAggregateScore(ratings)).toBe(50);
+    // avg: 50, star: 1 + (50/100)*9 = 5.5
+    expect(calculateAggregateScore(ratings)).toBe(5.5);
   });
 
   it('excludes platforms with errors', () => {
@@ -103,8 +105,8 @@ describe('calculateAggregateScore', () => {
       codeforces: { rating: 1200, error: null },
       atcoder: { rating: 800, error: 'API error' }
     };
-    // Only codeforces counts (normalized: 20)
-    expect(calculateAggregateScore(ratings)).toBe(20);
+    // Only codeforces counts (normalized: 20), star: 2.8
+    expect(calculateAggregateScore(ratings)).toBe(2.8);
   });
 
   it('excludes platforms with null rating', () => {
@@ -112,33 +114,48 @@ describe('calculateAggregateScore', () => {
       codeforces: { rating: null, error: null },
       atcoder: { rating: 800, error: null }
     };
-    // Only atcoder counts (normalized: 20)
-    expect(calculateAggregateScore(ratings)).toBe(20);
+    // Only atcoder counts (normalized: 20), star: 2.8
+    expect(calculateAggregateScore(ratings)).toBe(2.8);
   });
 
   it('skips platforms with rating 0 due to truthiness check', () => {
-    // rating: 0 is falsy, so calculateAggregateScore skips it
     const ratings = {
       codeforces: { rating: 0, error: null },
       atcoder: { rating: 800, error: null }
     };
-    // Only atcoder counts (normalized: 20), codeforces rating:0 is skipped
-    expect(calculateAggregateScore(ratings)).toBe(20);
+    // Only atcoder counts (normalized: 20), star: 2.8
+    expect(calculateAggregateScore(ratings)).toBe(2.8);
   });
 
   it('returns 0 for empty ratings', () => {
     expect(calculateAggregateScore({})).toBe(0);
   });
 
-  it('rounds to nearest integer', () => {
-    // codeforces 1300 → between 1200(20) and 1400(30): interpolation = 20 + (100/200)*10 = 25
-    // atcoder 600 → between 400(0) and 800(20): interpolation = 0 + (200/400)*20 = 10
-    // Average: (25 + 10) / 2 = 17.5 → rounds to 18
+  it('rounds to one decimal place', () => {
+    // codeforces 1300 → normalized 25
+    // atcoder 600 → normalized 10
+    // avg: 17.5, star: 1 + (17.5/100)*9 = 2.575 → rounds to 2.6
     const ratings = {
       codeforces: { rating: 1300, error: null },
       atcoder: { rating: 600, error: null }
     };
-    expect(calculateAggregateScore(ratings)).toBe(18);
+    expect(calculateAggregateScore(ratings)).toBe(2.6);
+  });
+
+  it('returns minimum star score of 1.0 for lowest normalized ratings', () => {
+    const ratings = {
+      codeforces: { rating: 800, error: null }  // normalized: 0
+    };
+    // star: 1 + (0/100)*9 = 1.0
+    expect(calculateAggregateScore(ratings)).toBe(1);
+  });
+
+  it('returns maximum star score of 10.0 for highest normalized ratings', () => {
+    const ratings = {
+      codeforces: { rating: 3500, error: null }  // normalized: 100
+    };
+    // star: 1 + (100/100)*9 = 10.0
+    expect(calculateAggregateScore(ratings)).toBe(10);
   });
 });
 

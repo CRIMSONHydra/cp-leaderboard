@@ -28,7 +28,7 @@ export default function LeaderboardRow({ user, rank, platforms = PLATFORMS }) {
       ))}
       <td className="aggregate-cell">
         <span className="aggregate-score">
-          {user.aggregateScore ? `${user.aggregateScore}/100` : '-'}
+          {user.aggregateScore ? `★ ${user.aggregateScore.toFixed(1)}/10` : '-'}
         </span>
       </td>
     </tr>
