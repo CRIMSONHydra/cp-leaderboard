@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSpaceLeaderboard } from '../hooks/useSpaceLeaderboard';
 import { useSpace } from '../hooks/useSpace';
+import { spacesApi } from '../services/api';
 import LeaderboardTable from '../components/Leaderboard/LeaderboardTable';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
+import EditUserModal from '../components/common/EditUserModal';
 import AddUserToSpace from '../components/Spaces/AddUserToSpace';
 import './SpaceLeaderboardPage.css';
 
@@ -11,11 +14,16 @@ export default function SpaceLeaderboardPage() {
   const { spaceId } = useParams();
   const { space, loading: spaceLoading, error: spaceError } = useSpace(spaceId);
   const { data, loading, error, sortBy, sortOrder, handleSort, refetch } = useSpaceLeaderboard(spaceId);
+  const [editingUser, setEditingUser] = useState(null);
 
   if (spaceLoading) return <Loading />;
   if (spaceError) return <ErrorMessage message={spaceError} />;
 
   const isAdmin = space?.myRole === 'admin';
+
+  const handleSaveEdit = async (userId, handles) => {
+    await spacesApi.updateTrackedUser(spaceId, userId, handles);
+  };
 
   return (
     <div className="space-leaderboard-page">
@@ -46,7 +54,18 @@ export default function SpaceLeaderboardPage() {
         sortOrder={sortOrder}
         onSort={handleSort}
         onRetry={refetch}
+        onEdit={isAdmin ? (user) => setEditingUser(user) : undefined}
+        spaceId={spaceId}
       />
+
+      {editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onSave={handleSaveEdit}
+          onClose={() => setEditingUser(null)}
+          onUpdated={refetch}
+        />
+      )}
     </div>
   );
 }

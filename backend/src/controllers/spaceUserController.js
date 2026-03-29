@@ -1,6 +1,7 @@
 import Space from '../models/Space.js';
 import User from '../models/User.js';
 import { PLATFORMS, updateSingleUser } from '../services/ratingUpdater.js';
+import { updateUserHandles } from './userController.js';
 
 const addUserToSpace = async (req, res) => {
   try {
@@ -219,4 +220,41 @@ const createAndTrackUser = async (req, res) => {
   }
 };
 
-export { addUserToSpace, removeUserFromSpace, getSpaceLeaderboard, searchUsers, createAndTrackUser };
+const updateTrackedUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { handles } = req.body;
+    const space = req.space;
+
+    if (!handles || typeof handles !== 'object' || Array.isArray(handles)) {
+      return res.status(400).json({ success: false, error: 'Handles object is required' });
+    }
+
+    // Verify user is tracked in this space
+    const isTracked = space.trackedUsers.some(id => id.toString() === userId);
+    if (!isTracked) {
+      return res.status(404).json({ success: false, error: 'User not tracked in this space' });
+    }
+
+    const { user, ratingErrors } = await updateUserHandles(userId, handles);
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    const response = { success: true, data: user };
+    if (ratingErrors.length > 0) {
+      response.ratingErrors = ratingErrors;
+    }
+
+    res.json(response);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ success: false, error: 'Invalid user ID format' });
+    }
+    console.error('Update tracked user error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+export { addUserToSpace, removeUserFromSpace, getSpaceLeaderboard, searchUsers, createAndTrackUser, updateTrackedUser };

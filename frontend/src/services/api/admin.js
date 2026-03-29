@@ -32,5 +32,8 @@ export const adminApi = {
     authenticatedFetch('/admin/credentials', { method: 'POST', body: credentialData, username, password }),
 
   verifyAuth: (username, password) =>
-    authenticatedFetch('/admin/verify', { username, password })
+    authenticatedFetch('/admin/verify', { username, password }),
+
+  updateUser: (userId, handles, username, password) =>
+    authenticatedFetch(`/users/${userId}`, { method: 'PUT', body: { handles }, username, password })
 };

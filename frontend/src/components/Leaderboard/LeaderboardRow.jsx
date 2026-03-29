@@ -3,7 +3,7 @@ import { PLATFORMS } from '../../constants/platforms';
 import RatingDisplay from './RatingDisplay';
 import './LeaderboardRow.css';
 
-export default function LeaderboardRow({ user, rank, platforms = PLATFORMS }) {
+export default function LeaderboardRow({ user, rank, platforms = PLATFORMS, onEdit, spaceId }) {
   return (
     <tr className="leaderboard-row">
       <td className="rank-cell">
@@ -12,7 +12,7 @@ export default function LeaderboardRow({ user, rank, platforms = PLATFORMS }) {
         </span>
       </td>
       <td className="name-cell">
-        <Link to={`/user/${user._id}`} className="user-name-link">
+        <Link to={`/user/${user._id}${spaceId ? `?spaceId=${spaceId}` : ''}`} className="user-name-link">
           {user.name}
         </Link>
       </td>
@@ -31,6 +31,18 @@ export default function LeaderboardRow({ user, rank, platforms = PLATFORMS }) {
           {user.aggregateScore ? `★ ${user.aggregateScore.toFixed(1)}/10` : '-'}
         </span>
       </td>
+      {onEdit && (
+        <td className="edit-cell">
+          <button
+            type="button"
+            className="btn-edit-user"
+            onClick={() => onEdit(user)}
+            aria-label={`Edit ${user.name}`}
+          >
+            Edit
+          </button>
+        </td>
+      )}
     </tr>
   );
 }
