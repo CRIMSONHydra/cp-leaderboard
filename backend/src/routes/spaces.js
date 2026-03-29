@@ -19,7 +19,8 @@ import {
   removeUserFromSpace,
   getSpaceLeaderboard,
   searchUsers,
-  createAndTrackUser
+  createAndTrackUser,
+  updateTrackedUser
 } from '../controllers/spaceUserController.js';
 import {
   sendInvitation,
@@ -62,6 +63,7 @@ router.get('/:spaceId/leaderboard', requireSpaceRole('admin', 'viewer'), getSpac
 // Tracked users management
 router.post('/:spaceId/users', requireSpaceRole('admin'), addUserToSpace);
 router.post('/:spaceId/users/create', requireSpaceRole('admin'), createAndTrackUser);
+router.put('/:spaceId/users/:userId', requireSpaceRole('admin'), updateTrackedUser);
 router.delete('/:spaceId/users/:userId', requireSpaceRole('admin'), removeUserFromSpace);
 
 // Space invitations

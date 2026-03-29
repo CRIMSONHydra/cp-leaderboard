@@ -1,8 +1,12 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { PLATFORMS, PLATFORM_NAMES, PLATFORM_URLS, PLATFORM_CHART_COLORS } from '../constants/platforms';
 import { getPlatformColor } from '../utils/ratingUtils';
+import { useAuth } from '../contexts/AuthContext';
+import { spacesApi } from '../services/api';
 import { useUserProfile } from '../hooks/useUserProfile';
 import RatingHistoryChart, { SinglePlatformChart } from '../components/UserProfile/RatingHistoryChart';
+import EditUserModal from '../components/common/EditUserModal';
 import Tooltip from '../components/common/Tooltip';
 import Loading from '../components/common/Loading';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -10,8 +14,13 @@ import './UserProfilePage.css';
 
 export default function UserProfilePage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { loading, error, userData, history } = useUserProfile(id);
+  const { isAuthenticated } = useAuth();
+  const { loading, error, userData, history, refetch } = useUserProfile(id);
+  const [showEdit, setShowEdit] = useState(false);
+
+  const spaceId = searchParams.get('spaceId');
 
   if (loading) {
     return (
@@ -54,7 +63,18 @@ export default function UserProfilePage() {
       </button>
 
       <div className="profile-header">
-        <h1 className="user-name">{userData.name}</h1>
+        <div className="profile-name-row">
+          <h1 className="user-name">{userData.name}</h1>
+          {isAuthenticated() && spaceId && (
+            <button
+              type="button"
+              className="btn-edit-profile"
+              onClick={() => setShowEdit(true)}
+            >
+              Edit Handles
+            </button>
+          )}
+        </div>
         <div className="aggregate-badge">
           <span className="aggregate-label">
             Aggregate Score
@@ -188,6 +208,17 @@ export default function UserProfilePage() {
         <section className="no-history-section">
           <p>No rating history available for this user.</p>
         </section>
+      )}
+
+      {showEdit && userData && (
+        <EditUserModal
+          user={userData}
+          onSave={async (userId, handles) => {
+            await spacesApi.updateTrackedUser(spaceId, userId, handles);
+          }}
+          onClose={() => setShowEdit(false)}
+          onUpdated={refetch}
+        />
       )}
     </div>
   );

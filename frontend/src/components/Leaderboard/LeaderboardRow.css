@@ -79,3 +79,27 @@
   font-size: 1.1rem;
   color: #2c3e50;
 }
+
+.edit-cell {
+  text-align: center;
+}
+
+.btn-edit-user {
+  padding: 0.3rem 0.65rem;
+  background: #ecf0f1;
+  color: #555;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-edit-user:hover {
+  background: #dfe6e9;
+}
+
+.btn-edit-user:focus-visible {
+  outline: 2px solid #3498db;
+  outline-offset: 2px;
+}
