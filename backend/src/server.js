@@ -55,6 +55,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Health check — before rate limiter so it's never throttled
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Rate limiting for API routes
 // Wrap apiLimiter in a function to reference it at request time, not at import time
 app.use('/api', (req, res, next) => apiLimiter(req, res, next));
