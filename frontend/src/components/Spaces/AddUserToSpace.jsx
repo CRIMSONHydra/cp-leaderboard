@@ -13,12 +13,14 @@ export default function AddUserToSpace({ spaceId, onAdded }) {
         type="button"
         className="track-user-toggle"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
+        aria-controls="track-user-panel"
       >
         {expanded ? 'Hide' : 'Track a Competitive Programmer'}
       </button>
 
       {expanded && (
-        <div className="track-user-panel">
+        <div className="track-user-panel" id="track-user-panel" role="region" aria-label="Track a competitive programmer">
           <p className="track-user-hint">
             Add a competitive programmer to track their ratings in this space. This is different from inviting members — tracked users are CP profiles, not accounts.
           </p>
@@ -117,7 +119,7 @@ function SearchExistingTab({ spaceId, onAdded }) {
                 className="btn btn-small"
                 disabled={adding === user._id}
               >
-                {adding === user._id ? 'Adding...' : 'Track'}
+                {adding === user._id ? 'Tracking...' : 'Track'}
               </button>
             </div>
           ))}
@@ -216,7 +218,7 @@ function CreateNewTab({ spaceId, onAdded }) {
         {success && <div className="create-success">{success}</div>}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Adding...' : 'Track Ratings'}
+          {loading ? 'Tracking...' : 'Track Ratings'}
         </button>
       </form>
     </div>

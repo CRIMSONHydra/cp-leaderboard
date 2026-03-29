@@ -44,6 +44,19 @@
   color: white;
 }
 
+.navbar .nav-link:focus-visible,
+.navbar .nav-btn:focus-visible {
+  outline: 2px solid #a8d8ff;
+  outline-offset: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.navbar-brand:focus-visible {
+  outline: 2px solid #a8d8ff;
+  outline-offset: 2px;
+}
+
 .navbar .nav-link-primary {
   background: rgba(52, 152, 219, 0.3);
   border: 1px solid rgba(52, 152, 219, 0.5);
