@@ -61,41 +61,52 @@ const createUser = async (req, res) => {
     const existingUser = await User.findOne({
       name: { $regex: new RegExp(`^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
     });
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        error: 'User with this name already exists'
-      });
-    }
 
-    // Prepare user data — global admin-created users are visible on global leaderboard
-    const userData = {
-      name: name.trim(),
-      isGlobal: true,
-      handles: {
-        codeforces: handles?.codeforces?.trim() || null,
-        atcoder: handles?.atcoder?.trim() || null,
-        codechef: handles?.codechef?.trim() || null,
-        leetcode: handles?.leetcode?.trim() || null
-      }
-    };
-
-    // Create user
-    const user = await User.create(userData);
-
-    // Automatically fetch ratings from all platforms
+    let user;
     let ratingErrors = [];
-    try {
-      ratingErrors = await updateSingleUser(user);
-      console.log(`Ratings fetched for user: ${user.name}, errors: ${ratingErrors.length}`);
-    } catch (error) {
-      // Log error but don't fail user creation
-      console.error(`Failed to fetch ratings for user ${user.name}:`, error);
-      ratingErrors.push({ platform: 'all', error: 'Failed to fetch ratings' });
-    }
 
-    // Fetch updated user with ratings
-    const updatedUser = await User.findById(user._id).lean();
+    if (existingUser) {
+      // User exists (possibly from space tracking) — promote to global and update handles
+      existingUser.isGlobal = true;
+      for (const platform of PLATFORMS) {
+        const newHandle = handles?.[platform]?.trim() || null;
+        if (newHandle) existingUser.handles[platform] = newHandle;
+      }
+      await existingUser.save();
+
+      try {
+        ratingErrors = await updateSingleUser(existingUser);
+      } catch (error) {
+        console.error(`Failed to fetch ratings for ${existingUser.name}:`, error);
+        ratingErrors.push({ platform: 'all', error: 'Failed to fetch ratings' });
+      }
+
+      user = await User.findById(existingUser._id).lean();
+    } else {
+      // Create new user — global admin-created users are visible on global leaderboard
+      const userData = {
+        name: name.trim(),
+        isGlobal: true,
+        handles: {
+          codeforces: handles?.codeforces?.trim() || null,
+          atcoder: handles?.atcoder?.trim() || null,
+          codechef: handles?.codechef?.trim() || null,
+          leetcode: handles?.leetcode?.trim() || null
+        }
+      };
+
+      const newUser = await User.create(userData);
+
+      try {
+        ratingErrors = await updateSingleUser(newUser);
+        console.log(`Ratings fetched for user: ${newUser.name}, errors: ${ratingErrors.length}`);
+      } catch (error) {
+        console.error(`Failed to fetch ratings for user ${newUser.name}:`, error);
+        ratingErrors.push({ platform: 'all', error: 'Failed to fetch ratings' });
+      }
+
+      user = await User.findById(newUser._id).lean();
+    }
 
     // Prepare response
     const response = {
