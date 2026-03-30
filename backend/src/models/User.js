@@ -29,13 +29,15 @@ const userSchema = new mongoose.Schema({
   },
   aggregateScore: { type: Number, default: 0 },
   lastFullUpdate: { type: Date, default: null },
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  isGlobal: { type: Boolean, default: false }
 }, {
   timestamps: true
 });
 
 // Indexes for leaderboard sorting
 userSchema.index({ aggregateScore: -1 });
+userSchema.index({ isGlobal: 1 });
 userSchema.index({ 'ratings.codeforces.rating': -1 });
 userSchema.index({ 'ratings.atcoder.rating': -1 });
 userSchema.index({ 'ratings.leetcode.rating': -1 });

@@ -32,7 +32,7 @@ const getLeaderboard = async (req, res) => {
       ...platformSortOptions
     };
 
-    const users = await User.find({ isActive: true })
+    const users = await User.find({ isActive: true, isGlobal: true })
       .select('name handles ratings aggregateScore lastFullUpdate')
       .sort(sortOptions[sortBy] || sortOptions.aggregate)
       .lean();
@@ -62,6 +62,7 @@ const getPlatformLeaderboard = async (req, res) => {
 
     const users = await User.find({
       isActive: true,
+      isGlobal: true,
       [`handles.${platform}`]: { $ne: null, $exists: true },
       [`ratings.${platform}.rating`]: { $ne: null }
     })
@@ -110,7 +111,7 @@ const getStats = async (req, res) => {
     );
 
     const stats = await User.aggregate([
-      { $match: { isActive: true } },
+      { $match: { isActive: true, isGlobal: true } },
       {
         $group: {
           _id: null,

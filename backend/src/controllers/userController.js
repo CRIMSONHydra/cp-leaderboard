@@ -68,9 +68,10 @@ const createUser = async (req, res) => {
       });
     }
 
-    // Prepare user data
+    // Prepare user data — global admin-created users are visible on global leaderboard
     const userData = {
       name: name.trim(),
+      isGlobal: true,
       handles: {
         codeforces: handles?.codeforces?.trim() || null,
         atcoder: handles?.atcoder?.trim() || null,
