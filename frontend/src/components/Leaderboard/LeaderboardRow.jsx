@@ -28,7 +28,9 @@ export default function LeaderboardRow({ user, rank, platforms = PLATFORMS, onEd
       ))}
       <td className="aggregate-cell">
         <span className="aggregate-score">
-          {user.aggregateScore ? `★ ${user.aggregateScore.toFixed(1)}/10` : '-'}
+          {user.aggregateScore
+            ? `★ ${(user.aggregateScore > 10 ? (1 + (user.aggregateScore / 100) * 9) : user.aggregateScore).toFixed(1)}/10`
+            : '-'}
         </span>
       </td>
       {onEdit && (

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import './Spaces.css';
 
-export default function MemberList({ members, isAdmin, ownerId, onRoleChange, onRemove }) {
+export default function MemberList({ members, isAdmin, ownerId, currentAccountId, onRoleChange, onRemove }) {
   const [loading, setLoading] = useState(null);
 
-  const handleRoleChange = async (accountId, newRole) => {
+  const handlePromote = async (accountId) => {
     setLoading(accountId);
     try {
-      await onRoleChange(accountId, newRole);
+      await onRoleChange(accountId, 'admin');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -43,11 +43,16 @@ export default function MemberList({ members, isAdmin, ownerId, onRoleChange, on
           {members.map((member) => {
             const accountId = member.account._id || member.account;
             const isOwner = accountId === ownerId;
+            const isSelf = accountId === currentAccountId;
+            const isViewer = member.role === 'viewer';
+            const canEdit = isAdmin && !isOwner && !isSelf;
+
             return (
               <tr key={accountId}>
                 <td>
                   {member.account.username}
                   {isOwner && <span className="owner-badge">owner</span>}
+                  {isSelf && !isOwner && <span className="self-badge">you</span>}
                 </td>
                 <td>{member.account.email}</td>
                 <td>
@@ -55,16 +60,17 @@ export default function MemberList({ members, isAdmin, ownerId, onRoleChange, on
                 </td>
                 {isAdmin && (
                   <td>
-                    {!isOwner && (
+                    {canEdit && (
                       <div className="member-actions">
-                        <select
-                          value={member.role}
-                          onChange={(e) => handleRoleChange(accountId, e.target.value)}
-                          disabled={loading === accountId}
-                        >
-                          <option value="admin">Admin</option>
-                          <option value="viewer">Viewer</option>
-                        </select>
+                        {isViewer && (
+                          <button
+                            onClick={() => handlePromote(accountId)}
+                            className="btn-promote"
+                            disabled={loading === accountId}
+                          >
+                            {loading === accountId ? 'Promoting...' : 'Make Admin'}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleRemove(accountId, member.account.username)}
                           className="btn-remove"

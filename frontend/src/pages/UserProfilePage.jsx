@@ -83,7 +83,9 @@ export default function UserProfilePage() {
               <span className="info-badge">ⓘ</span>
             </Tooltip>
           </span>
-          <span className="aggregate-value">{userData.aggregateScore ? `★ ${userData.aggregateScore.toFixed(1)}/10` : 'Unrated'}</span>
+          <span className="aggregate-value">{userData.aggregateScore
+            ? `★ ${(userData.aggregateScore > 10 ? (1 + (userData.aggregateScore / 100) * 9) : userData.aggregateScore).toFixed(1)}/10`
+            : 'Unrated'}</span>
         </div>
       </div>
 

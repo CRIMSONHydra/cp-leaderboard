@@ -237,8 +237,18 @@ const updateMemberRole = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Member not found' });
     }
 
-    if (space.owner.toString() === accountId && role !== 'admin') {
+    if (space.owner.toString() === accountId) {
       return res.status(400).json({ success: false, error: 'Cannot change owner role' });
+    }
+
+    // Members cannot change their own role
+    if (accountId === req.account.id) {
+      return res.status(400).json({ success: false, error: 'Cannot change your own role' });
+    }
+
+    // Admins can only promote viewers to admin, not demote other admins
+    if (member.role === 'admin' && role !== 'admin') {
+      return res.status(400).json({ success: false, error: 'Cannot demote an admin. Only the owner can do this.' });
     }
 
     member.role = role;

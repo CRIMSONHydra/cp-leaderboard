@@ -168,6 +168,7 @@ export default function SpaceSettingsPage() {
           members={members}
           isAdmin={isAdmin}
           ownerId={space?.owner?._id || space?.owner}
+          currentAccountId={account?.id}
           onRoleChange={handleRoleChange}
           onRemove={handleRemoveMember}
         />
