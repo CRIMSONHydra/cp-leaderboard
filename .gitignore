@@ -35,5 +35,9 @@ backend/public
 # Claude
 .claude
 
+# Stale sub-package lockfiles (workspace uses root pnpm-lock.yaml)
+backend/pnpm-lock.yaml
+frontend/pnpm-lock.yaml
+
 #Todos
 todos.txt
