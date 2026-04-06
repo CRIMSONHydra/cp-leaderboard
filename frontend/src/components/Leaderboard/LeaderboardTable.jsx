@@ -7,7 +7,7 @@ import ErrorMessage from '../common/ErrorMessage';
 import './LeaderboardTable.css';
 
 export default function LeaderboardTable({ data, loading, error, sortBy, sortOrder, onSort, onRetry, onEdit, spaceId }) {
-  if (loading) return <Loading />;
+  if (loading) return <Loading message="Loading leaderboard..." />;
   if (error) return <ErrorMessage message={error} onRetry={onRetry} />;
   if (data.length === 0) {
     return (

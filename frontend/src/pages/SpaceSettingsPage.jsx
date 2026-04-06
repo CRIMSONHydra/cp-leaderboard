@@ -37,7 +37,7 @@ export default function SpaceSettingsPage() {
     }
   }, [space]);
 
-  if (loading) return <Loading />;
+  if (loading) return <Loading message="Loading settings..." />;
   if (error) return <ErrorMessage message={error} />;
 
   const isOwner = space?.owner?._id === account?.id || space?.owner === account?.id;

@@ -1,6 +1,6 @@
 {
   "name": "cp-leaderboard",
-  "version": "1.5.0",
+  "version": "1.7.0",
   "description": "CP Leaderboard - Competitive Programming Rating Tracker",
   "type": "module",
   "private": true,

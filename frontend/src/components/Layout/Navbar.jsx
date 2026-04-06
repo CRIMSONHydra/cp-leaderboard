@@ -21,7 +21,7 @@ export default function Navbar() {
           {isAuthenticated() ? (
             <>
               <Link to="/spaces" className="nav-link">My Spaces</Link>
-              <span className="nav-user">{account?.username}</span>
+              <Link to="/profile" className="nav-link nav-user-link">{account?.username}</Link>
               <button type="button" onClick={handleLogout} className="nav-link nav-btn">Sign Out</button>
             </>
           ) : (

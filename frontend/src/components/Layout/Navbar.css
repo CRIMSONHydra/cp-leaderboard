@@ -66,6 +66,16 @@
   background: rgba(52, 152, 219, 0.5);
 }
 
+.navbar .nav-user-link {
+  color: #6bc5ff;
+  font-weight: 500;
+}
+
+.navbar .nav-user-link:hover {
+  text-decoration: underline;
+  color: white;
+}
+
 .navbar .nav-btn {
   background: none;
   border: none;

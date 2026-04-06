@@ -32,7 +32,7 @@ export default function SpacesPage() {
 
       <PendingInvitations onAccepted={refetch} />
 
-      {loading && <Loading />}
+      {loading && <Loading message="Loading spaces..." />}
       {error && <ErrorMessage message={error} onRetry={refetch} />}
 
       {!loading && !error && (

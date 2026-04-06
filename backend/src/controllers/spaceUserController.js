@@ -257,4 +257,4 @@ const updateTrackedUser = async (req, res) => {
   }
 };
 
-export { addUserToSpace, removeUserFromSpace, getSpaceLeaderboard, searchUsers, createAndTrackUser, updateTrackedUser };
+export { addUserToSpace, removeUserFromSpace, getSpaceLeaderboard, searchUsers, createAndTrackUser, updateTrackedUser, findExactMatchByHandles };

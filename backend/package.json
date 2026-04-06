@@ -1,6 +1,6 @@
 {
   "name": "cp-leaderboard-backend",
-  "version": "1.5.0",
+  "version": "1.7.0",
   "description": "Backend for CP Leaderboard - tracks competitive programming ratings",
   "type": "module",
   "main": "src/server.js",
@@ -26,24 +26,24 @@
   "license": "ISC",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
-    "axios": "^1.13.2",
-    "bcrypt": "^6.0.0",
-    "cheerio": "^1.1.2",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
-    "ioredis": "^5.8.2",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.0.1",
-    "nodemailer": "^8.0.4",
-    "rate-limit-redis": "^4.3.1"
+    "axios": "1.13.6",
+    "bcrypt": "6.0.0",
+    "cheerio": "1.2.0",
+    "cookie-parser": "1.4.7",
+    "cors": "2.8.6",
+    "dotenv": "17.3.1",
+    "express": "5.2.1",
+    "express-rate-limit": "8.3.1",
+    "ioredis": "5.10.1",
+    "jsonwebtoken": "9.0.3",
+    "mongoose": "9.3.3",
+    "nodemailer": "8.0.4",
+    "rate-limit-redis": "4.3.1"
   },
   "devDependencies": {
-    "mongodb-memory-server": "^11.0.1",
-    "nodemon": "^3.1.11",
-    "vitest": "^4.1.2"
+    "mongodb-memory-server": "11.0.1",
+    "nodemon": "3.1.14",
+    "vitest": "4.1.2"
   },
   "engines": {
     "node": ">=20.0.0"

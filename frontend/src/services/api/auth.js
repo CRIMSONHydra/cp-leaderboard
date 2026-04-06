@@ -33,5 +33,22 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, password })
-    })
+    }),
+
+  updateProfile: (data) =>
+    fetchJSON('/auth/me', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }),
+
+  linkHandles: (handles) =>
+    fetchJSON('/auth/me/handles', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ handles })
+    }),
+
+  getMySpaces: () =>
+    fetchJSON('/auth/me/spaces')
 };
