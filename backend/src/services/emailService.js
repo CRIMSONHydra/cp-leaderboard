@@ -1,5 +1,13 @@
 import nodemailer from 'nodemailer';
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 let transporter = null;
 
 function getTransporter() {
@@ -36,10 +44,10 @@ export async function sendSpaceInviteEmail(email, spaceName, inviterName, role) 
   await transport.sendMail({
     from: process.env.SMTP_FROM || 'noreply@cpleaderboard.com',
     to: email,
-    subject: `You're invited to join "${spaceName}" - CP Leaderboard`,
+    subject: `You're invited to join "${escapeHtml(spaceName)}" - CP Leaderboard`,
     html: `
       <h2>Space Invitation</h2>
-      <p><strong>${inviterName}</strong> invited you to join <strong>${spaceName}</strong> as a <strong>${role}</strong>.</p>
+      <p><strong>${escapeHtml(inviterName)}</strong> invited you to join <strong>${escapeHtml(spaceName)}</strong> as a <strong>${escapeHtml(role)}</strong>.</p>
       <p>Log in to CP Leaderboard to accept or decline the invitation.</p>
     `
   });

@@ -12,7 +12,7 @@ export default function LeaderboardRow({ user, rank, platforms = PLATFORMS, onEd
         </span>
       </td>
       <td className="name-cell">
-        <Link to={`/user/${user._id}${spaceId ? `?spaceId=${spaceId}` : ''}`} className="user-name-link">
+        <Link to={`/user/${user._id}${spaceId ? `?spaceId=${encodeURIComponent(spaceId)}` : ''}`} className="user-name-link">
           {user.name}
         </Link>
       </td>

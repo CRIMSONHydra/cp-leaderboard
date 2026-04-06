@@ -70,7 +70,7 @@ const getSpace = async (req, res) => {
     }
 
     const membership = space.members.find(
-      m => m.account._id.toString() === req.account.id
+      m => (m.account._id || m.account).toString() === req.account.id
     );
 
     if (!membership) {

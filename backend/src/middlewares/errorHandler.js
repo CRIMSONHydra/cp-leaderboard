@@ -18,10 +18,11 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Default error
+  // Default error — never leak internal details in production
+  const isProduction = process.env.NODE_ENV === 'production';
   res.status(err.statusCode || 500).json({
     success: false,
-    error: err.message || 'Server Error'
+    error: isProduction ? 'Internal server error' : (err.message || 'Server Error')
   });
 };
 

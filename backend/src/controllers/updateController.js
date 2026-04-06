@@ -74,6 +74,13 @@ const triggerUpdate = async (req, res) => {
     
     if (!lockResult.success) {
       const existingLockData = lockResult.existingLock;
+      if (!existingLockData) {
+        return res.status(409).json({
+          success: false,
+          error: 'Failed to acquire update lock. Try again.',
+          hint: 'Add ?force=true to override if the update is stuck'
+        });
+      }
       const runningForMs = Date.now() - new Date(existingLockData.startedAt).getTime();
       const runningForMins = Math.round(runningForMs / 60000);
       return res.status(409).json({
@@ -91,9 +98,13 @@ const triggerUpdate = async (req, res) => {
       res.json({ success: true, ...result });
     } catch (error) {
       // Ensure lock is released on error
-      await releaseUpdateLock('failed', {
-        errors: [{ error: `Update failed: ${error.message}` }]
-      });
+      try {
+        await releaseUpdateLock('failed', {
+          errors: [{ error: 'Update failed' }]
+        });
+      } catch (releaseErr) {
+        console.error('Failed to release update lock:', releaseErr);
+      }
       throw error;
     }
   } catch (error) {

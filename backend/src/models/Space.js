@@ -58,7 +58,7 @@ spaceSchema.index({ owner: 1 });
 spaceSchema.index({ 'members.account': 1 });
 
 spaceSchema.statics.generateInviteCode = function () {
-  return crypto.randomBytes(4).toString('hex'); // 8 chars
+  return crypto.randomBytes(8).toString('hex'); // 16 chars
 };
 
 export default mongoose.model('Space', spaceSchema);

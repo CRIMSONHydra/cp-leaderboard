@@ -111,7 +111,7 @@ const createUser = async (req, res) => {
     // Prepare response
     const response = {
       success: true,
-      data: updatedUser
+      data: user
     };
 
     // Include rating errors if any occurred
