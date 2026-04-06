@@ -273,6 +273,13 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Account not found' });
     }
 
+    if (username !== undefined) {
+      if (typeof username !== 'string') return res.status(400).json({ success: false, error: 'Username must be a string' });
+    }
+    if (email !== undefined) {
+      if (typeof email !== 'string') return res.status(400).json({ success: false, error: 'Email must be a string' });
+    }
+
     if (username !== undefined && username.trim() !== account.username) {
       const trimmed = username.trim();
       if (trimmed.length < 3) return res.status(400).json({ success: false, error: 'Username must be at least 3 characters' });
@@ -329,14 +336,25 @@ const linkHandles = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Handles object is required' });
     }
 
-    const hasAnyHandle = PLATFORMS.some(p => handles[p]?.trim());
+    // Validate handle types — only strings allowed
+    for (const p of PLATFORMS) {
+      if (handles[p] !== undefined && handles[p] !== null && typeof handles[p] !== 'string') {
+        return res.status(400).json({ success: false, error: `Handle for ${p} must be a string` });
+      }
+    }
+
+    const normalizedHandles = Object.fromEntries(
+      PLATFORMS.map(p => [p, typeof handles[p] === 'string' ? handles[p].trim() : null])
+    );
+
+    const hasAnyHandle = PLATFORMS.some(p => normalizedHandles[p]);
     if (!hasAnyHandle) {
       return res.status(400).json({ success: false, error: 'At least one platform handle is required' });
     }
 
     // Try to find existing User with matching handles (deduplication)
     const { findExactMatchByHandles } = await import('./spaceUserController.js');
-    let user = await findExactMatchByHandles(handles);
+    let user = await findExactMatchByHandles(normalizedHandles);
 
     if (user) {
       // Link to existing user
@@ -346,9 +364,7 @@ const linkHandles = async (req, res) => {
       // Create new user and fetch ratings
       const userData = {
         name: account.username,
-        handles: Object.fromEntries(
-          PLATFORMS.map(p => [p, handles[p]?.trim() || null])
-        )
+        handles: normalizedHandles
       };
       user = await User.create(userData);
 
@@ -376,8 +392,7 @@ const getMySpaces = async (req, res) => {
       'members.account': req.account.id,
       isActive: true
     })
-      .select('name description owner members createdAt')
-      .populate('owner', 'username')
+      .select('name description members createdAt')
       .lean();
 
     const spacesWithRole = spaces.map(space => {

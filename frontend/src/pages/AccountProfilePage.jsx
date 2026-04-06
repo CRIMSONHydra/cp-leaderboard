@@ -183,7 +183,8 @@ function CPProfileSection({ account, setAccount }) {
     );
   }
 
-  // Display stats
+  // Scores <= 10 are already on the 1-10 star scale; scores > 10 are legacy 0-100
+  // scale data that needs converting: 1 + (score/100) * 9 maps 0-100 to 1-10
   const score = linkedUser.aggregateScore;
   const displayScore = score > 10 ? (1 + (score / 100) * 9) : score;
 
