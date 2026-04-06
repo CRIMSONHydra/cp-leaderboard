@@ -16,7 +16,7 @@ export default function SpaceLeaderboardPage() {
   const { data, loading, error, sortBy, sortOrder, handleSort, refetch } = useSpaceLeaderboard(spaceId);
   const [editingUser, setEditingUser] = useState(null);
 
-  if (spaceLoading) return <Loading />;
+  if (spaceLoading) return <Loading message="Loading space..." />;
   if (spaceError) return <ErrorMessage message={spaceError} />;
 
   const isAdmin = space?.myRole === 'admin';

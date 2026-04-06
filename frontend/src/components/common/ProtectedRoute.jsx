@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children }) {
   if (loading) {
     return (
       <div className="protected-route-loading">
-        <Loading />
+        <Loading message="Checking authentication..." />
       </div>
     );
   }

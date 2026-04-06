@@ -26,7 +26,7 @@ export default function UserProfilePage() {
   if (loading) {
     return (
       <div className="user-profile-page">
-        <Loading />
+        <Loading message="Loading profile..." />
       </div>
     );
   }

@@ -28,6 +28,11 @@ const accountSchema = new mongoose.Schema({
   refreshTokenVersion: {
     type: Number,
     default: 0
+  },
+  linkedUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   }
 }, {
   timestamps: true

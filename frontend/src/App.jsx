@@ -8,6 +8,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import SpacesPage from './pages/SpacesPage';
 import SpaceLeaderboardPage from './pages/SpaceLeaderboardPage';
 import SpaceSettingsPage from './pages/SpaceSettingsPage';
+import AccountProfilePage from './pages/AccountProfilePage';
 import AddUser from './components/UserManagement/AddUser';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminProtectedRoute from './components/common/AdminProtectedRoute';
@@ -31,6 +32,7 @@ function App() {
         <Route path="/spaces" element={<ProtectedRoute><SpacesPage /></ProtectedRoute>} />
         <Route path="/spaces/:spaceId" element={<ProtectedRoute><SpaceLeaderboardPage /></ProtectedRoute>} />
         <Route path="/spaces/:spaceId/settings" element={<ProtectedRoute><SpaceSettingsPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><AccountProfilePage /></ProtectedRoute>} />
 
         {/* Legacy admin */}
         <Route path="/add-user" element={
