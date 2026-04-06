@@ -3,7 +3,8 @@ import crypto from 'crypto';
 import { connectTestDB, disconnectTestDB, clearTestDB } from '../../test/dbSetup.js';
 import Account from '../../models/Account.js';
 import PasswordResetToken from '../../models/PasswordResetToken.js';
-import { register, login, logout, refreshToken, forgotPassword, resetPassword, getMe } from '../authController.js';
+import { register, login, logout, refreshToken, forgotPassword, resetPassword, getMe, updateProfile, linkHandles, getMySpaces } from '../authController.js';
+import Space from '../../models/Space.js';
 
 beforeAll(async () => {
   process.env.JWT_ACCESS_SECRET = 'test-access-secret-key-12345';
@@ -297,6 +298,135 @@ describe('authController', () => {
       await getMe(req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('updates username', async () => {
+      const account = await Account.create({ username: 'old', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ username: 'newname' });
+      req.account = { id: account._id.toString() };
+
+      await updateProfile(req, res);
+
+      const body = res.json.mock.calls[0][0];
+      expect(body.success).toBe(true);
+      expect(body.data.username).toBe('newname');
+    });
+
+    it('rejects duplicate username', async () => {
+      await Account.create({ username: 'taken', email: 'a@b.com', password: 'password123' });
+      const account = await Account.create({ username: 'mine', email: 'b@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ username: 'taken' });
+      req.account = { id: account._id.toString() };
+
+      await updateProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    it('changes password with correct current password', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'oldpass123' });
+      const { req, res } = createMockReqRes({ currentPassword: 'oldpass123', newPassword: 'newpass123' });
+      req.account = { id: account._id.toString() };
+
+      await updateProfile(req, res);
+
+      expect(res.json.mock.calls[0][0].success).toBe(true);
+      const updated = await Account.findById(account._id).select('+password');
+      expect(await updated.comparePassword('newpass123')).toBe(true);
+      expect(updated.refreshTokenVersion).toBe(1);
+    });
+
+    it('rejects wrong current password', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ currentPassword: 'wrong', newPassword: 'newpass123' });
+      req.account = { id: account._id.toString() };
+
+      await updateProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    it('rejects non-string username', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ username: 123 });
+      req.account = { id: account._id.toString() };
+
+      await updateProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+  });
+
+  describe('linkHandles', () => {
+    it('creates and links a new user', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ handles: { codeforces: 'tourist' } });
+      req.account = { id: account._id.toString() };
+
+      await linkHandles(req, res);
+
+      const body = res.json.mock.calls[0][0];
+      expect(body.success).toBe(true);
+      expect(body.data.handles.codeforces).toBe('tourist');
+
+      const updated = await Account.findById(account._id);
+      expect(updated.linkedUser).toBeTruthy();
+    });
+
+    it('rejects non-string handle values', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ handles: { codeforces: 123 } });
+      req.account = { id: account._id.toString() };
+
+      await linkHandles(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('rejects empty handles', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes({ handles: {} });
+      req.account = { id: account._id.toString() };
+
+      await linkHandles(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+  });
+
+  describe('getMySpaces', () => {
+    it('returns spaces where account is a member', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+
+      await Space.create({
+        name: 'My Space',
+        owner: account._id,
+        members: [{ account: account._id, role: 'admin' }],
+        inviteCode: Space.generateInviteCode()
+      });
+
+      const { req, res } = createMockReqRes();
+      req.account = { id: account._id.toString() };
+
+      await getMySpaces(req, res);
+
+      const body = res.json.mock.calls[0][0];
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].name).toBe('My Space');
+      expect(body.data[0].myRole).toBe('admin');
+    });
+
+    it('returns empty array when no spaces', async () => {
+      const account = await Account.create({ username: 'user', email: 'u@b.com', password: 'password123' });
+      const { req, res } = createMockReqRes();
+      req.account = { id: account._id.toString() };
+
+      await getMySpaces(req, res);
+
+      const body = res.json.mock.calls[0][0];
+      expect(body.data).toHaveLength(0);
     });
   });
 });
